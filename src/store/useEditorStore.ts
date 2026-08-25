@@ -4,7 +4,7 @@ import type { SnapGuide } from '../engine/geometry/snapping';
 import type { NodeType } from '../models/node';
 import { getPreference, setPreference } from '../persistence/preferencesStorage';
 
-export type ToolType = 'select' | 'frame' | 'rectangle' | 'ellipse' | 'line' | 'arrow' | 'polygon' | 'pencil' | 'text';
+export type ToolType = 'select' | 'hand' | 'frame' | 'rectangle' | 'ellipse' | 'line' | 'arrow' | 'polygon' | 'pencil' | 'text';
 
 export interface MarqueeState {
   startX: number;
@@ -50,9 +50,11 @@ export interface EditorState {
   editingTextNodeId: string | null;
   setEditingTextNodeId: (id: string | null) => void;
 
-  // Grid & Snapping
+  // Grid, Rulers & Snapping
   showGrid: boolean;
   setShowGrid: (show: boolean) => void;
+  showRulers: boolean;
+  setShowRulers: (show: boolean) => void;
   gridSize: number;
   setGridSize: (size: number) => void;
   snapToGrid: boolean;
@@ -78,6 +80,12 @@ export interface EditorState {
   propertiesCollapsed: boolean;
   setPropertiesCollapsed: (collapsed: boolean) => void;
 
+  // Modals & Palettes
+  isCommandPaletteOpen: boolean;
+  setCommandPaletteOpen: (open: boolean) => void;
+  isCodeExportModalOpen: boolean;
+  setCodeExportModalOpen: (open: boolean) => void;
+
   // Active Drawing Shape preview
   drawingShapeType: NodeType | null;
   setDrawingShapeType: (type: NodeType | null) => void;
@@ -91,16 +99,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   setViewport: (partial) =>
     set((state) => ({ viewport: { ...state.viewport, ...partial } })),
-  
+
   zoomIn: () => {
     const current = get().viewport.zoom;
-    const next = Math.min(32, Math.round((current * 1.2) * 100) / 100);
+    const next = Math.min(32, Math.round(current * 1.25 * 100) / 100);
     set((state) => ({ viewport: { ...state.viewport, zoom: next } }));
   },
 
   zoomOut: () => {
     const current = get().viewport.zoom;
-    const next = Math.max(0.05, Math.round((current / 1.2) * 100) / 100);
+    const next = Math.max(0.05, Math.round((current / 1.25) * 100) / 100);
     set((state) => ({ viewport: { ...state.viewport, zoom: next } }));
   },
 
@@ -130,7 +138,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   activeTool: 'select',
   setActiveTool: (tool) => {
-    set({ activeTool: tool, drawingShapeType: tool === 'select' ? null : (tool as NodeType) });
+    set({
+      activeTool: tool,
+      drawingShapeType: ['select', 'hand'].includes(tool) ? null : (tool as NodeType)
+    });
   },
 
   selectedIds: [],
@@ -158,6 +169,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setShowGrid: (show) => {
     setPreference('showGrid', show);
     set({ showGrid: show });
+  },
+
+  showRulers: getPreference('showRulers', true),
+  setShowRulers: (show) => {
+    setPreference('showRulers', show);
+    set({ showRulers: show });
   },
 
   gridSize: getPreference('gridSize', 8),
@@ -197,6 +214,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   propertiesCollapsed: false,
   setPropertiesCollapsed: (collapsed) => set({ propertiesCollapsed: collapsed }),
+
+  isCommandPaletteOpen: false,
+  setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+
+  isCodeExportModalOpen: false,
+  setCodeExportModalOpen: (open) => set({ isCodeExportModalOpen: open }),
 
   drawingShapeType: null,
   setDrawingShapeType: (type) => set({ drawingShapeType: type })

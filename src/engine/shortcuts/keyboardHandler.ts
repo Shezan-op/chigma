@@ -1,216 +1,224 @@
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useEditorStore } from '../../store/useEditorStore';
-import { useProjectStore } from '../../store/useProjectStore';
 
-export function handleGlobalKeyDown(e: KeyboardEvent): void {
-  // Ignore shortcuts if typing in an input/textarea
-  const activeElement = document.activeElement as HTMLElement | null;
-  const isInput =
-    activeElement &&
-    (activeElement.tagName === 'INPUT' ||
-      activeElement.tagName === 'TEXTAREA' ||
-      activeElement.isContentEditable);
+export function setupKeyboardShortcuts(): () => void {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // Ignore keystrokes inside text input elements
+    const activeEl = document.activeElement;
+    const isEditingText =
+      activeEl?.tagName === 'INPUT' ||
+      activeEl?.tagName === 'TEXTAREA' ||
+      (activeEl as HTMLElement)?.isContentEditable;
 
-  if (isInput) return;
+    const {
+      setActiveTool,
+      selectedIds,
+      setSelectedIds,
+      deselectAll,
+      zoomIn,
+      zoomOut,
+      resetZoom,
+      showGrid,
+      setShowGrid,
+      showRulers,
+      setShowRulers,
+      isCommandPaletteOpen,
+      setCommandPaletteOpen,
+      isCodeExportModalOpen,
+      setCodeExportModalOpen
+    } = useEditorStore.getState();
 
-  const isMetaOrCtrl = e.metaKey || e.ctrlKey;
-  const isShift = e.shiftKey;
-  const key = e.key.toLowerCase();
+    const {
+      undo,
+      redo,
+      canUndo,
+      canRedo,
+      deleteNodes,
+      duplicateNodes,
+      groupNodes,
+      ungroupNodes,
+      copy,
+      cut,
+      paste,
+      getActivePage
+    } = useDocumentStore.getState();
 
-  const docStore = useDocumentStore.getState();
-  const editStore = useEditorStore.getState();
-  const projStore = useProjectStore.getState();
-
-  const activePage = docStore.getActivePage();
-  const selectedIds = editStore.selectedIds;
-
-  // 1. Tool Selection (V, F, R, E, L, A, T, P)
-  if (!isMetaOrCtrl && !isShift) {
-    if (key === 'v') {
+    // 1. Command Palette: Ctrl+K / Cmd+K
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      editStore.setActiveTool('select');
+      setCommandPaletteOpen(!isCommandPaletteOpen);
       return;
     }
-    if (key === 'f') {
+
+    // 2. Export Code: Ctrl+Shift+C / Cmd+Shift+C
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
       e.preventDefault();
-      editStore.setActiveTool('frame');
+      setCodeExportModalOpen(!isCodeExportModalOpen);
       return;
     }
-    if (key === 'r') {
-      e.preventDefault();
-      editStore.setActiveTool('rectangle');
-      return;
-    }
-    if (key === 'e') {
-      e.preventDefault();
-      editStore.setActiveTool('ellipse');
-      return;
-    }
-    if (key === 'l') {
-      e.preventDefault();
-      editStore.setActiveTool('line');
-      return;
-    }
-    if (key === 'a') {
-      e.preventDefault();
-      editStore.setActiveTool('arrow');
-      return;
-    }
-    if (key === 't') {
-      e.preventDefault();
-      editStore.setActiveTool('text');
-      return;
-    }
-    if (key === 'p') {
-      e.preventDefault();
-      editStore.setActiveTool('pencil');
-      return;
-    }
-  }
 
-  // 2. Undo / Redo
-  if (isMetaOrCtrl && key === 'z') {
-    e.preventDefault();
-    if (isShift) {
-      docStore.redo();
-    } else {
-      docStore.undo();
-    }
-    return;
-  }
+    if (isEditingText) return;
 
-  // 3. Select All (Ctrl/Cmd + A)
-  if (isMetaOrCtrl && key === 'a') {
-    e.preventDefault();
-    if (activePage) {
-      editStore.setSelectedIds(activePage.children.map((c) => c.id));
-    }
-    return;
-  }
-
-  // 4. Clipboard: Copy, Cut, Paste, Duplicate
-  if (isMetaOrCtrl && key === 'c') {
-    if (selectedIds.length > 0) {
+    // 3. Undo / Redo
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
-      docStore.copy(selectedIds);
-    }
-    return;
-  }
-
-  if (isMetaOrCtrl && key === 'x') {
-    if (selectedIds.length > 0) {
-      e.preventDefault();
-      docStore.cut(selectedIds);
-      editStore.deselectAll();
-    }
-    return;
-  }
-
-  if (isMetaOrCtrl && key === 'v') {
-    e.preventDefault();
-    const pastedIds = docStore.paste();
-    if (pastedIds.length > 0) {
-      editStore.setSelectedIds(pastedIds);
-    }
-    return;
-  }
-
-  if (isMetaOrCtrl && key === 'd') {
-    if (selectedIds.length > 0) {
-      e.preventDefault();
-      const dupedIds = docStore.duplicateNodes(selectedIds);
-      if (dupedIds.length > 0) {
-        editStore.setSelectedIds(dupedIds);
-      }
-    }
-    return;
-  }
-
-  // 5. Grouping (Ctrl+G, Ctrl+Shift+G)
-  if (isMetaOrCtrl && key === 'g') {
-    e.preventDefault();
-    if (isShift) {
-      // Ungroup
-      if (selectedIds.length === 1) {
-        const restoredIds = docStore.ungroupNodes(selectedIds[0]);
-        if (restoredIds.length > 0) {
-          editStore.setSelectedIds(restoredIds);
-        }
-      }
-    } else {
-      // Group
-      if (selectedIds.length >= 2) {
-        const newGroupId = docStore.groupNodes(selectedIds);
-        if (newGroupId) {
-          editStore.setSelectedIds([newGroupId]);
-        }
-      }
-    }
-    return;
-  }
-
-  // 6. Layer Ordering (Ctrl+[, Ctrl+], Ctrl+Shift+[, Ctrl+Shift+])
-  if (isMetaOrCtrl && (e.key === '[' || e.key === ']')) {
-    e.preventDefault();
-    if (selectedIds.length > 0) {
-      if (e.key === ']') {
-        docStore.reorderNodes(isShift ? 'front' : 'forward', selectedIds);
+      if (e.shiftKey) {
+        if (canRedo()) redo();
       } else {
-        docStore.reorderNodes(isShift ? 'back' : 'backward', selectedIds);
+        if (canUndo()) undo();
+      }
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      if (canRedo()) redo();
+      return;
+    }
+
+    // 4. Clipboard Operations
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+      e.preventDefault();
+      if (selectedIds.length > 0) copy(selectedIds);
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
+      e.preventDefault();
+      if (selectedIds.length > 0) cut(selectedIds);
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+      e.preventDefault();
+      const pastedIds = paste();
+      if (pastedIds.length > 0) setSelectedIds(pastedIds);
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+      e.preventDefault();
+      if (selectedIds.length > 0) {
+        const clonedIds = duplicateNodes(selectedIds);
+        if (clonedIds.length > 0) setSelectedIds(clonedIds);
+      }
+      return;
+    }
+
+    // 5. Grouping & Ungrouping
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        // Ungroup
+        if (selectedIds.length === 1) {
+          const restoredIds = ungroupNodes(selectedIds[0]);
+          if (restoredIds.length > 0) setSelectedIds(restoredIds);
+        }
+      } else {
+        // Group
+        if (selectedIds.length > 1) {
+          const groupId = groupNodes(selectedIds);
+          if (groupId) setSelectedIds([groupId]);
+        }
+      }
+      return;
+    }
+
+    // 6. Select All
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+      e.preventDefault();
+      const page = getActivePage();
+      if (page && page.children) {
+        setSelectedIds(page.children.filter((n) => n.visible && !n.locked).map((n) => n.id));
+      }
+      return;
+    }
+
+    // 7. Delete
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (selectedIds.length > 0) {
+        e.preventDefault();
+        deleteNodes(selectedIds);
+        deselectAll();
+      }
+      return;
+    }
+
+    // 8. Escape -> Deselect
+    if (e.key === 'Escape') {
+      deselectAll();
+      setActiveTool('select');
+      return;
+    }
+
+    // 9. Zoom Shortcuts
+    if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+      e.preventDefault();
+      zoomIn();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && (e.key === '-' || e.key === '_')) {
+      e.preventDefault();
+      zoomOut();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+      e.preventDefault();
+      resetZoom();
+      return;
+    }
+
+    // 10. Toggle Grid & Rulers
+    if ((e.ctrlKey || e.metaKey) && (e.key === "'" || e.key === '"')) {
+      e.preventDefault();
+      setShowGrid(!showGrid);
+      return;
+    }
+
+    if (e.shiftKey && e.key.toLowerCase() === 'r') {
+      e.preventDefault();
+      setShowRulers(!showRulers);
+      return;
+    }
+
+    // 11. Tool Switch Shortcuts (Single Key)
+    if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+      switch (e.key.toLowerCase()) {
+        case 'v':
+          setActiveTool('select');
+          break;
+        case 'h':
+          setActiveTool('hand');
+          break;
+        case 'f':
+          setActiveTool('frame');
+          break;
+        case 'r':
+          setActiveTool('rectangle');
+          break;
+        case 'e':
+          setActiveTool('ellipse');
+          break;
+        case 'l':
+          setActiveTool('line');
+          break;
+        case 'a':
+          setActiveTool('arrow');
+          break;
+        case 't':
+          setActiveTool('text');
+          break;
+        case 'p':
+          setActiveTool('pencil');
+          break;
       }
     }
-    return;
-  }
+  };
 
-  // 7. Deletion (Delete or Backspace)
-  if (e.key === 'Delete' || e.key === 'Backspace') {
-    if (selectedIds.length > 0) {
-      e.preventDefault();
-      docStore.deleteNodes(selectedIds);
-      editStore.deselectAll();
-    }
-    return;
-  }
-
-  // 8. Escape: Deselect
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    editStore.deselectAll();
-    editStore.setActiveTool('select');
-    return;
-  }
-
-  // 9. Nudge with Arrow Keys (1px or 10px on Shift)
-  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-    if (selectedIds.length > 0) {
-      e.preventDefault();
-      const step = isShift ? 10 : 1;
-      let dx = 0;
-      let dy = 0;
-      if (e.key === 'ArrowLeft') dx = -step;
-      if (e.key === 'ArrowRight') dx = step;
-      if (e.key === 'ArrowUp') dy = -step;
-      if (e.key === 'ArrowDown') dy = step;
-
-      const updates = selectedIds.map((id) => {
-        const node = docStore.getNodeById(id);
-        return {
-          id,
-          props: {
-            x: (node?.x || 0) + dx,
-            y: (node?.y || 0) + dy
-          }
-        };
-      });
-
-      docStore.updateNodes(updates, true, 'Nudge elements');
-    }
-    return;
-  }
-
-  // 10. Help modal (?)
-  if (e.key === '?' || (isShift && e.key === '/')) {
-    e.preventDefault();
-    projStore.setShortcutsModalOpen(true);
-  }
+  window.addEventListener('keydown', handleKeyDown);
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown);
+  };
 }

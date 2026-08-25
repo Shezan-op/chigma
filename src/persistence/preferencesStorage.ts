@@ -5,6 +5,7 @@ export interface AppPreferences {
   sidebarWidth: number;
   lastOpenedProjectId?: string;
   showGrid: boolean;
+  showRulers: boolean;
   gridSize: number;
   snapToGrid: boolean;
   snapToObjects: boolean;
@@ -15,6 +16,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   theme: 'dark',
   sidebarWidth: 260,
   showGrid: true,
+  showRulers: true,
   gridSize: 8,
   snapToGrid: true,
   snapToObjects: true,
@@ -51,6 +53,7 @@ export function getAllPreferences(): AppPreferences {
     sidebarWidth: getPreference('sidebarWidth', 260),
     lastOpenedProjectId: getPreference('lastOpenedProjectId', undefined),
     showGrid: getPreference('showGrid', true),
+    showRulers: getPreference('showRulers', true),
     gridSize: getPreference('gridSize', 8),
     snapToGrid: getPreference('snapToGrid', true),
     snapToObjects: getPreference('snapToObjects', true),

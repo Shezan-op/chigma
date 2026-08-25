@@ -3,309 +3,251 @@ import { useDocumentStore } from '../../store/useDocumentStore';
 import { useEditorStore } from '../../store/useEditorStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import {
+  ArrowLeft,
   Undo2,
   Redo2,
-  Grid,
-  Magnet,
   ZoomIn,
   ZoomOut,
-  Maximize,
+  Grid,
   Download,
   Upload,
-  HelpCircle,
-  FolderKanban,
   AlignLeft,
   AlignCenter,
   AlignRight,
-  AlignStartVertical,
-  AlignCenterVertical,
-  AlignEndVertical,
-  SplitSquareHorizontal,
-  SplitSquareVertical
+  AlignJustify,
+  HelpCircle,
+  Code,
+  Search,
+  Sliders
 } from 'lucide-react';
 
 interface TopToolbarProps {
-  onBackToHome: () => void;
+  onBackToProjects: () => void;
 }
 
-export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToHome }) => {
-  const document = useDocumentStore((s) => s.document);
-  const renameDocument = useDocumentStore((s) => s.renameDocument);
-  const undo = useDocumentStore((s) => s.undo);
-  const redo = useDocumentStore((s) => s.redo);
-  const canUndo = useDocumentStore((s) => s.canUndo());
-  const canRedo = useDocumentStore((s) => s.canRedo());
-  const alignNodes = useDocumentStore((s) => s.alignNodes);
-  const distributeNodes = useDocumentStore((s) => s.distributeNodes);
+export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
+  const {
+    document: doc,
+    renameDocument,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    alignNodes,
+    distributeNodes
+  } = useDocumentStore();
 
   const {
     viewport,
-    setZoom,
     zoomIn,
     zoomOut,
     resetZoom,
     showGrid,
     setShowGrid,
-    snapToGrid,
-    setSnapToGrid,
-    selectedIds
+    showRulers,
+    setShowRulers,
+    selectedIds,
+    setCommandPaletteOpen,
+    setCodeExportModalOpen
   } = useEditorStore();
 
-  const {
-    setExportModalOpen,
-    setImportModalOpen,
-    setShortcutsModalOpen,
-    isSaving,
-    lastSavedAt
-  } = useProjectStore();
+  const { setExportModalOpen, setImportModalOpen, setShortcutsModalOpen } = useProjectStore();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleValue, setTitleValue] = useState(document?.name || 'Untitled Design');
+  const [titleInput, setTitleInput] = useState(doc.name);
 
   const handleTitleSubmit = () => {
     setIsEditingTitle(false);
-    if (titleValue.trim()) {
-      renameDocument(titleValue.trim());
-    } else {
-      setTitleValue(document?.name || 'Untitled Design');
+    if (titleInput.trim() && titleInput !== doc.name) {
+      renameDocument(titleInput.trim());
     }
   };
 
-  const hasMultiSelection = selectedIds.length >= 2;
-  const hasThreeSelection = selectedIds.length >= 3;
+  const hasMultipleSelected = selectedIds.length > 1;
 
   return (
     <header className="chigma-top-toolbar">
-      {/* Left: Brand & Home Navigation */}
+      {/* Left: Logo & Project Navigation */}
       <div className="toolbar-section left">
         <button
-          className="btn-icon home-btn"
-          onClick={onBackToHome}
+          className="btn-icon header-nav-btn"
+          onClick={onBackToProjects}
           title="Back to Projects"
           aria-label="Back to Projects"
         >
-          <FolderKanban size={18} />
+          <ArrowLeft size={16} />
         </button>
 
-        <div className="brand-badge">
-          <div className="brand-icon">
-            <span className="dot dot-1" />
-            <span className="dot dot-2" />
-            <span className="dot dot-3" />
-            <span className="dot dot-4" />
-          </div>
+        <div className="chigma-brand-badge" onClick={onBackToProjects}>
+          <div className="brand-dot" />
           <span className="brand-name">Chigma</span>
         </div>
 
-        {/* Project Title */}
-        <div className="project-title-wrapper">
-          {isEditingTitle ? (
-            <input
-              type="text"
-              className="title-input"
-              value={titleValue}
-              onChange={(e) => setTitleValue(e.target.value)}
-              onBlur={handleTitleSubmit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleTitleSubmit();
-                if (e.key === 'Escape') {
-                  setTitleValue(document?.name || 'Untitled Design');
-                  setIsEditingTitle(false);
-                }
-              }}
-              autoFocus
-            />
-          ) : (
-            <span
-              className="title-display"
-              onDoubleClick={() => {
-                setTitleValue(document?.name || 'Untitled Design');
-                setIsEditingTitle(true);
-              }}
-              title="Double click to rename project"
-            >
-              {document?.name || 'Untitled Design'}
-            </span>
-          )}
+        <div className="title-divider" />
 
-          {/* Auto-save status */}
-          <span className="autosave-status">
-            {isSaving ? 'Saving...' : lastSavedAt ? 'Saved offline' : 'Local'}
-          </span>
-        </div>
+        {/* Project Name */}
+        {isEditingTitle ? (
+          <input
+            type="text"
+            className="header-title-input"
+            value={titleInput}
+            onChange={(e) => setTitleInput(e.target.value)}
+            onBlur={handleTitleSubmit}
+            onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
+            autoFocus
+          />
+        ) : (
+          <div
+            className="header-project-title"
+            onDoubleClick={() => {
+              setTitleInput(doc.name);
+              setIsEditingTitle(true);
+            }}
+            title="Double click to rename"
+          >
+            {doc.name}
+          </div>
+        )}
       </div>
 
-      {/* Center: History, Alignment & Snapping */}
+      {/* Center: Command Palette, Undo/Redo & Alignment Tools */}
       <div className="toolbar-section center">
+        {/* Quick Actions Search Pill */}
+        <button
+          className="command-palette-trigger"
+          onClick={() => setCommandPaletteOpen(true)}
+          title="Quick Actions (Ctrl+K)"
+        >
+          <Search size={13} />
+          <span>Quick Actions</span>
+          <kbd>Ctrl+K</kbd>
+        </button>
+
         {/* Undo / Redo */}
-        <div className="btn-group">
+        <div className="toolbar-btn-group">
           <button
             className="btn-icon"
             onClick={undo}
-            disabled={!canUndo}
+            disabled={!canUndo()}
             title="Undo (Ctrl+Z)"
             aria-label="Undo"
           >
-            <Undo2 size={16} />
+            <Undo2 size={15} />
           </button>
           <button
             className="btn-icon"
             onClick={redo}
-            disabled={!canRedo}
-            title="Redo (Ctrl+Shift+Z)"
+            disabled={!canRedo()}
+            title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
             aria-label="Redo"
           >
-            <Redo2 size={16} />
+            <Redo2 size={15} />
           </button>
         </div>
 
-        <div className="toolbar-divider" />
+        {/* Alignment & Distribution (Shown when multiple items selected) */}
+        {hasMultipleSelected && (
+          <div className="toolbar-btn-group">
+            <button
+              className="btn-icon sm"
+              onClick={() => alignNodes('left', selectedIds)}
+              title="Align Left"
+            >
+              <AlignLeft size={14} />
+            </button>
+            <button
+              className="btn-icon sm"
+              onClick={() => alignNodes('center', selectedIds)}
+              title="Align Center"
+            >
+              <AlignCenter size={14} />
+            </button>
+            <button
+              className="btn-icon sm"
+              onClick={() => alignNodes('right', selectedIds)}
+              title="Align Right"
+            >
+              <AlignRight size={14} />
+            </button>
+            <button
+              className="btn-icon sm"
+              onClick={() => distributeNodes('horizontal', selectedIds)}
+              title="Distribute Horizontally"
+            >
+              <AlignJustify size={14} />
+            </button>
+          </div>
+        )}
+      </div>
 
-        {/* Alignment */}
-        <div className="btn-group">
-          <button
-            className="btn-icon"
-            disabled={!hasMultiSelection}
-            onClick={() => alignNodes('left', selectedIds)}
-            title="Align Left"
-          >
-            <AlignLeft size={16} />
-          </button>
-          <button
-            className="btn-icon"
-            disabled={!hasMultiSelection}
-            onClick={() => alignNodes('center', selectedIds)}
-            title="Align Center"
-          >
-            <AlignCenter size={16} />
-          </button>
-          <button
-            className="btn-icon"
-            disabled={!hasMultiSelection}
-            onClick={() => alignNodes('right', selectedIds)}
-            title="Align Right"
-          >
-            <AlignRight size={16} />
-          </button>
-          <button
-            className="btn-icon"
-            disabled={!hasMultiSelection}
-            onClick={() => alignNodes('top', selectedIds)}
-            title="Align Top"
-          >
-            <AlignStartVertical size={16} />
-          </button>
-          <button
-            className="btn-icon"
-            disabled={!hasMultiSelection}
-            onClick={() => alignNodes('middle', selectedIds)}
-            title="Align Middle"
-          >
-            <AlignCenterVertical size={16} />
-          </button>
-          <button
-            className="btn-icon"
-            disabled={!hasMultiSelection}
-            onClick={() => alignNodes('bottom', selectedIds)}
-            title="Align Bottom"
-          >
-            <AlignEndVertical size={16} />
-          </button>
-        </div>
-
-        <div className="toolbar-divider" />
-
-        {/* Distribution */}
-        <div className="btn-group">
-          <button
-            className="btn-icon"
-            disabled={!hasThreeSelection}
-            onClick={() => distributeNodes('horizontal', selectedIds)}
-            title="Distribute Horizontally"
-          >
-            <SplitSquareHorizontal size={16} />
-          </button>
-          <button
-            className="btn-icon"
-            disabled={!hasThreeSelection}
-            onClick={() => distributeNodes('vertical', selectedIds)}
-            title="Distribute Vertically"
-          >
-            <SplitSquareVertical size={16} />
-          </button>
-        </div>
-
-        <div className="toolbar-divider" />
-
-        {/* Grid & Snapping */}
-        <div className="btn-group">
+      {/* Right: Zoom, Grid, Rulers, Code Export, Export/Import */}
+      <div className="toolbar-section right">
+        {/* View Controls */}
+        <div className="toolbar-btn-group">
           <button
             className={`btn-icon ${showGrid ? 'active' : ''}`}
             onClick={() => setShowGrid(!showGrid)}
-            title={`Toggle Grid (${showGrid ? 'On' : 'Off'})`}
+            title={`Toggle Grid (${showGrid ? 'On' : 'Off'}) - Ctrl+'`}
           >
-            <Grid size={16} />
+            <Grid size={15} />
           </button>
           <button
-            className={`btn-icon ${snapToGrid ? 'active' : ''}`}
-            onClick={() => setSnapToGrid(!snapToGrid)}
-            title={`Toggle Snapping (${snapToGrid ? 'On' : 'Off'})`}
+            className={`btn-icon ${showRulers ? 'active' : ''}`}
+            onClick={() => setShowRulers(!showRulers)}
+            title={`Toggle Rulers (${showRulers ? 'On' : 'Off'}) - Shift+R`}
           >
-            <Magnet size={16} />
+            <Sliders size={15} />
           </button>
-        </div>
-      </div>
-
-      {/* Right: Zoom & Export/Import */}
-      <div className="toolbar-section right">
-        {/* Zoom */}
-        <div className="zoom-controls">
-          <button className="btn-icon sm" onClick={zoomOut} title="Zoom Out">
-            <ZoomOut size={14} />
+          <button className="btn-icon" onClick={zoomOut} title="Zoom Out (Ctrl+-)">
+            <ZoomOut size={15} />
           </button>
-          <button className="zoom-percent-btn" onClick={resetZoom} title="Reset Zoom (100%)">
+          <span className="zoom-percentage-btn" onClick={resetZoom} title="Reset Zoom (Ctrl+0)">
             {Math.round(viewport.zoom * 100)}%
-          </button>
-          <button className="btn-icon sm" onClick={zoomIn} title="Zoom In">
-            <ZoomIn size={14} />
-          </button>
-          <button
-            className="btn-icon sm"
-            onClick={() => setZoom(1)}
-            title="Fit to Screen"
-          >
-            <Maximize size={14} />
+          </span>
+          <button className="btn-icon" onClick={zoomIn} title="Zoom In (Ctrl++)">
+            <ZoomIn size={15} />
           </button>
         </div>
 
-        <div className="toolbar-divider" />
+        {/* Export to Code Pill */}
+        <button
+          className="btn btn-code-export"
+          onClick={() => setCodeExportModalOpen(true)}
+          title="Export Wireframe to HTML/CSS Code (Ctrl+Shift+C)"
+        >
+          <Code size={14} />
+          <span>Export Code</span>
+        </button>
 
-        {/* Actions */}
-        <div className="btn-group">
+        {/* Standard Export / Import */}
+        <div className="toolbar-btn-group">
           <button
-            className="btn-text"
+            className="btn btn-secondary btn-sm"
             onClick={() => setImportModalOpen(true)}
-            title="Import .chigma.json or image"
+            title="Import .chigma.json"
           >
-            <Upload size={14} />
+            <Upload size={13} />
             <span>Import</span>
           </button>
           <button
-            className="btn-primary"
+            className="btn btn-primary btn-sm"
             onClick={() => setExportModalOpen(true)}
-            title="Export JSON, SVG, or PNG"
+            title="Export Image / Vector / Document"
           >
-            <Download size={14} />
+            <Download size={13} />
             <span>Export</span>
           </button>
-          <button
-            className="btn-icon"
-            onClick={() => setShortcutsModalOpen(true)}
-            title="Keyboard Shortcuts (?)"
-          >
-            <HelpCircle size={16} />
-          </button>
         </div>
+
+        {/* Shortcuts / Help */}
+        <button
+          className="btn-icon"
+          onClick={() => setShortcutsModalOpen(true)}
+          title="Keyboard Shortcuts (?)"
+          aria-label="Keyboard Shortcuts"
+        >
+          <HelpCircle size={15} />
+        </button>
       </div>
     </header>
   );

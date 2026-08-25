@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useEditorStore } from '../../store/useEditorStore';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { DocumentRenderer } from '../../engine/renderer/DocumentRenderer';
@@ -6,6 +6,7 @@ import { TransformOverlay } from './TransformOverlay';
 import { SnappingGuidesOverlay } from './SnappingGuidesOverlay';
 import { MarqueeOverlay } from './MarqueeOverlay';
 import { TextEditorOverlay } from './TextEditorOverlay';
+import { RulersOverlay } from './RulersOverlay';
 import { screenToWorld } from '../../engine/geometry/matrix';
 import { calculateResize, type HandleType } from '../../engine/geometry/resize';
 import { calculateRotation } from '../../engine/geometry/rotation';
@@ -17,6 +18,8 @@ import { readFileAsDataURL } from '../../utils/file';
 
 export const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
 
   // Editor Store
   const {
@@ -33,6 +36,7 @@ export const Canvas: React.FC = () => {
     editingTextNodeId,
     setEditingTextNodeId,
     showGrid,
+    showRulers,
     gridSize,
     snapToGrid,
     snapToObjects,
@@ -54,6 +58,41 @@ export const Canvas: React.FC = () => {
 
   const activePage = getActivePage();
 
+  // Handle Resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight
+        });
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Listen for Spacebar hold for Hand/Pan Mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        setIsSpacePressed(true);
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setIsSpacePressed(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
   // Pointer Down on Canvas / SVG
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (!containerRef.current || !activePage) return;
@@ -62,8 +101,8 @@ export const Canvas: React.FC = () => {
     const screenY = e.clientY - rect.top;
     const worldPoint = screenToWorld({ x: screenX, y: screenY }, viewport);
 
-    // Middle Click or Alt/Option Click -> Pan
-    if (e.button === 1 || e.altKey) {
+    // Hand tool, Spacebar hold, Middle Click or Alt Click -> Pan
+    if (activeTool === 'hand' || isSpacePressed || e.button === 1 || e.altKey) {
       setInteraction({
         type: 'pan',
         startScreenX: screenX,
@@ -262,6 +301,7 @@ export const Canvas: React.FC = () => {
     activePage,
     viewport,
     activeTool,
+    isSpacePressed,
     selectedIds,
     setActiveTool,
     addNode,
@@ -274,9 +314,14 @@ export const Canvas: React.FC = () => {
     setEditingTextNodeId
   ]);
 
-  // Pointer Move
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!containerRef.current) return;
+  // RequestAnimationFrame throttled Pointer Move handler
+  const rafRef = useRef<number | null>(null);
+  const latestMoveEvent = useRef<PointerEvent | null>(null);
+
+  const processPointerMove = useCallback(() => {
+    const e = latestMoveEvent.current;
+    if (!e || !containerRef.current) return;
+
     const rect = containerRef.current.getBoundingClientRect();
     const screenX = e.clientX - rect.left;
     const screenY = e.clientY - rect.top;
@@ -504,8 +549,24 @@ export const Canvas: React.FC = () => {
     updateNodes
   ]);
 
+  // Pointer Move Event with rAF queue
+  const handlePointerMove = useCallback((e: PointerEvent) => {
+    latestMoveEvent.current = e;
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(() => {
+        processPointerMove();
+        rafRef.current = null;
+      });
+    }
+  }, [processPointerMove]);
+
   // Pointer Up / End Drag
   const handlePointerUp = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
     if (interaction) {
       if (interaction.type === 'draw' || interaction.type === 'pencil') {
         setActiveTool('select');
@@ -612,23 +673,19 @@ export const Canvas: React.FC = () => {
   // Attach global pointer up / move listeners
   useEffect(() => {
     const onWinPointerMove = (e: PointerEvent) => {
-      if (interaction || marquee) {
-        handlePointerMove(e as unknown as React.PointerEvent);
-      }
+      handlePointerMove(e);
     };
     const onWinPointerUp = () => {
-      if (interaction || marquee) {
-        handlePointerUp();
-      }
+      handlePointerUp();
     };
 
-    window.addEventListener('pointermove', onWinPointerMove);
+    window.addEventListener('pointermove', onWinPointerMove, { passive: false });
     window.addEventListener('pointerup', onWinPointerUp);
     return () => {
       window.removeEventListener('pointermove', onWinPointerMove);
       window.removeEventListener('pointerup', onWinPointerUp);
     };
-  }, [interaction, marquee, handlePointerMove, handlePointerUp]);
+  }, [handlePointerMove, handlePointerUp]);
 
   const selectedNodes = selectedIds
     .map((id) => getNodeById(id))
@@ -638,16 +695,27 @@ export const Canvas: React.FC = () => {
     ? (getNodeById(editingTextNodeId) as TextNode | undefined)
     : undefined;
 
+  const isHandMode = activeTool === 'hand' || isSpacePressed;
+
   return (
     <div
       ref={containerRef}
-      className={`chigma-canvas-container tool-${activeTool}`}
+      className={`chigma-canvas-container tool-${activeTool} ${isHandMode ? 'cursor-hand' : ''}`}
       onPointerDown={handlePointerDown}
       onDoubleClick={handleDoubleClick}
       onWheel={handleWheel}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      {/* Visual Coordinate Rulers */}
+      {showRulers && (
+        <RulersOverlay
+          viewport={viewport}
+          width={dimensions.width}
+          height={dimensions.height}
+        />
+      )}
+
       <svg
         className="chigma-canvas-svg"
         style={{
@@ -668,7 +736,7 @@ export const Canvas: React.FC = () => {
               <circle
                 cx={(gridSize * viewport.zoom) / 2}
                 cy={(gridSize * viewport.zoom) / 2}
-                r={0.8}
+                r={Math.max(0.6, 0.8 * Math.min(1.5, viewport.zoom))}
                 fill="#CBD5E1"
               />
             </pattern>

@@ -1,34 +1,36 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProjectStore } from '../store/useProjectStore';
 import { useDocumentStore } from '../store/useDocumentStore';
-import { exportDocumentToJson } from '../engine/export/exportJson';
-import { getProjectById } from '../persistence/projectStorage';
+import { type ChigmaDocument, type ProjectMetadata, createDefaultPage } from '../models/document';
+import { createDefaultNode } from '../models/document';
+import { ConfirmModal } from '../components/dialogs/ConfirmModal';
+import { ImportModal } from '../components/dialogs/ImportModal';
 import {
   Plus,
+  Layout,
   Upload,
-  Search,
+  Clock,
+  Layers,
   MoreVertical,
   Trash2,
   Copy,
   Edit2,
-  Download,
-  FolderKanban,
-  FileCode,
   Sparkles,
-  Clock,
-  Layers
+  Smartphone,
+  BarChart3,
+  Search
 } from 'lucide-react';
 
 interface ProjectManagerProps {
-  onOpenProject: (doc: any) => void;
+  onOpenEditor: () => void;
 }
 
-export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenProject }) => {
+export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) => {
   const {
     projects,
     loadProjectsList,
-    createProject,
     openProject,
+    createProject,
     cloneProject,
     renameProjectItem,
     deleteProjectItem,
@@ -38,277 +40,401 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenProject })
 
   const setDocument = useDocumentStore((s) => s.setDocument);
 
-  const [search, setSearch] = useState('');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
-
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadProjectsList();
   }, [loadProjectsList]);
 
-  // Close context menu on outside click
-  useEffect(() => {
-    const handleOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setActiveMenuId(null);
-      }
-    };
-    window.addEventListener('mousedown', handleOutside);
-    return () => window.removeEventListener('mousedown', handleOutside);
-  }, []);
-
   const handleCreateNew = async () => {
-    const newDoc = await createProject();
-    setDocument(newDoc);
-    onOpenProject(newDoc);
-  };
-
-  const handleOpen = async (id: string) => {
-    const doc = await openProject(id);
-    if (doc) {
-      setDocument(doc);
-      onOpenProject(doc);
+    try {
+      const newDoc = await createProject('Untitled Design');
+      setDocument(newDoc);
+      onOpenEditor();
+    } catch (err) {
+      console.error('Failed to create project:', err);
     }
   };
 
-  const handleDuplicate = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveMenuId(null);
-    await cloneProject(id);
-  };
+  const handleCreateFromTemplate = async (templateType: 'saas' | 'mobile' | 'dashboard') => {
+    try {
+      let docName = 'SaaS Landing Page';
+      if (templateType === 'mobile') docName = 'Mobile App Wireframe';
+      if (templateType === 'dashboard') docName = 'Analytics Dashboard';
 
-  const handleStartRename = (id: string, currentName: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveMenuId(null);
-    setEditingId(id);
-    setEditName(currentName);
-  };
+      const newDoc = await createProject(docName);
+      const page = createDefaultPage('Page 1');
 
-  const handleSaveRename = async (id: string) => {
-    if (editName.trim()) {
-      await renameProjectItem(id, editName.trim());
+      if (templateType === 'saas') {
+        page.children = [
+          createDefaultNode('navbar', 100, 40, { width: 1000, height: 64, brandName: 'Acme SaaS' }),
+          createDefaultNode('badge', 500, 140, { width: 140, height: 28, label: '✨ Introducing v2.0', variant: 'info' }),
+          createDefaultNode('text', 260, 190, {
+            width: 680,
+            height: 90,
+            text: 'Build High-Impact Wireframes in Seconds',
+            fontSize: 34,
+            fontWeight: 700,
+            textAlign: 'center'
+          }),
+          createDefaultNode('text', 280, 290, {
+            width: 640,
+            height: 48,
+            text: 'Fast, offline-first visual design software for modern product teams and creators.',
+            fontSize: 16,
+            fontWeight: 400,
+            fill: '#52525B',
+            textAlign: 'center'
+          }),
+          createDefaultNode('button', 460, 360, { width: 140, height: 44, label: 'Get Started Free', variant: 'primary', cornerRadius: 50 }),
+          createDefaultNode('button', 610, 360, { width: 130, height: 44, label: 'Live Demo →', variant: 'secondary', cornerRadius: 50 }),
+          createDefaultNode('bar-chart', 100, 440, { width: 480, height: 260, title: 'Quarterly Growth' }),
+          createDefaultNode('card', 610, 440, { width: 490, height: 260, title: 'Interactive Prototype Feature', content: 'Turn concepts into responsive code with clean vector layout rendering.' })
+        ];
+      } else if (templateType === 'mobile') {
+        page.children = [
+          createDefaultNode('frame', 380, 40, { width: 375, height: 740, cornerRadius: 36, fill: '#FFFFFF' }),
+          createDefaultNode('navbar', 380, 40, { width: 375, height: 54, brandName: 'Mobile Feed', links: [] }),
+          createDefaultNode('avatar', 400, 110, { width: 50, height: 50, name: 'Sarah Jenkins', fill: '#6366F1' }),
+          createDefaultNode('text', 460, 115, { width: 220, height: 22, text: 'Sarah Jenkins', fontSize: 15, fontWeight: 600 }),
+          createDefaultNode('text', 460, 137, { width: 220, height: 18, text: 'Product Designer', fontSize: 12, fill: '#71717A' }),
+          createDefaultNode('card', 400, 180, { width: 335, height: 220, title: 'Design System Guidelines', content: 'Explore unified color tokens, grid alignment, and interaction physics.' }),
+          createDefaultNode('card', 400, 420, { width: 335, height: 200, title: 'Weekly Sprint Metrics', content: 'Design handoff velocity increased by 42% this quarter.' }),
+          createDefaultNode('tabs', 380, 720, { width: 375, height: 50, tabs: ['Feed', 'Explore', 'Saved', 'Profile'] })
+        ];
+      } else if (templateType === 'dashboard') {
+        page.children = [
+          createDefaultNode('sidebar', 80, 40, { width: 220, height: 720, title: 'Enterprise Hub' }),
+          createDefaultNode('navbar', 320, 40, { width: 860, height: 60, brandName: 'Analytics Overview' }),
+          createDefaultNode('card', 320, 120, { width: 260, height: 110, title: 'Total Revenue', subtitle: '+18.4% from last month', content: '$124,500' }),
+          createDefaultNode('card', 600, 120, { width: 260, height: 110, title: 'Active Users', subtitle: '+12.1% growth', content: '48,290' }),
+          createDefaultNode('card', 880, 120, { width: 300, height: 110, title: 'Conversion Rate', subtitle: 'Target: 4.5%', content: '4.82%' }),
+          createDefaultNode('line-chart', 320, 250, { width: 560, height: 260, title: 'User Acquisition Trend' }),
+          createDefaultNode('donut-chart', 900, 250, { width: 280, height: 260, title: 'Traffic by Channel' }),
+          createDefaultNode('table', 320, 530, { width: 860, height: 210, headers: ['Client', 'Tier', 'Status', 'Renewal'] })
+        ];
+      }
+
+      newDoc.pages = [page];
+      useProjectStore.getState().saveCurrentProject(newDoc);
+      setDocument(newDoc);
+      onOpenEditor();
+    } catch (err) {
+      console.error('Failed to create project from template:', err);
     }
-    setEditingId(null);
   };
 
-  const handleDelete = (id: string, name: string, e: React.MouseEvent) => {
+  const handleOpenProject = async (p: ProjectMetadata) => {
+    try {
+      const doc: ChigmaDocument | null = await openProject(p.id);
+      if (doc) {
+        setDocument(doc);
+        onOpenEditor();
+      }
+    } catch (err) {
+      console.error('Failed to open project:', err);
+    }
+  };
+
+  const handleDuplicate = async (pId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveMenuId(null);
+    await cloneProject(pId);
+  };
+
+  const handleDelete = (p: ProjectMetadata, e: React.MouseEvent) => {
     e.stopPropagation();
     setActiveMenuId(null);
     showConfirmModal(
       'Delete Project',
-      `Are you sure you want to permanently delete "${name}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${p.name}"? This action is permanent and cannot be undone.`,
       async () => {
-        await deleteProjectItem(id);
+        await deleteProjectItem(p.id);
       },
       'Delete Project'
     );
   };
 
-  const handleExport = async (id: string, e: React.MouseEvent) => {
+  const handleStartRename = (p: ProjectMetadata, e: React.MouseEvent) => {
     e.stopPropagation();
     setActiveMenuId(null);
-    const doc = await getProjectById(id);
-    if (doc) {
-      exportDocumentToJson(doc);
+    setRenamingId(p.id);
+    setRenameValue(p.name);
+  };
+
+  const handleFinishRename = async (pId: string) => {
+    if (renameValue.trim()) {
+      await renameProjectItem(pId, renameValue.trim());
     }
+    setRenamingId(null);
   };
 
   const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatDate = (timestamp: number) => {
-    const d = new Date(timestamp);
-    return d.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   return (
-    <div className="chigma-project-manager">
-      {/* Home Navigation Header */}
+    <div className="chigma-project-manager-root">
+      {/* Top Header */}
       <header className="manager-header">
         <div className="manager-header-inner">
-          <div className="brand-section">
-            <div className="brand-icon lg">
-              <span className="dot dot-1" />
-              <span className="dot dot-2" />
-              <span className="dot dot-3" />
-              <span className="dot dot-4" />
+          <div className="manager-brand">
+            <div className="brand-logo-badge">
+              <span className="brand-dot" />
             </div>
-            <div>
-              <h1 className="brand-title">Chigma</h1>
-              <p className="brand-subtitle">Offline Wireframing &amp; Visual Design</p>
+            <div className="brand-titles">
+              <span className="brand-title">Chigma</span>
+              <span className="brand-subtitle">Offline Visual Design &amp; Wireframing</span>
             </div>
           </div>
 
-          <div className="manager-actions">
-            <button className="btn-secondary" onClick={() => setImportModalOpen(true)}>
-              <Upload size={15} />
-              <span>Import (.chigma.json)</span>
+          <div className="manager-header-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setImportModalOpen(true)}
+            >
+              <Upload size={14} />
+              <span>Import .chigma.json</span>
             </button>
-            <button className="btn-primary" onClick={handleCreateNew}>
-              <Plus size={16} />
-              <span>New Project</span>
+            <button className="btn btn-primary" onClick={handleCreateNew}>
+              <Plus size={15} />
+              <span>New Blank Project</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="manager-main-content">
-        {/* Search & Stats Bar */}
-        <div className="manager-toolbar">
-          <div className="search-input-wrapper">
-            <Search size={15} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search your projects..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          <div className="projects-count">
-            <span>{projects.length} {projects.length === 1 ? 'Project' : 'Projects'}</span>
-          </div>
-        </div>
-
-        {/* Project Grid */}
-        {filteredProjects.length === 0 ? (
-          <div className="empty-projects-view">
-            <div className="empty-icon-card">
-              <FolderKanban size={36} />
+      {/* Main Content Area */}
+      <main className="manager-content">
+        {/* Starter Templates Section */}
+        <section className="manager-templates-section">
+          <div className="section-header">
+            <div className="section-title">
+              <Sparkles size={16} color="#0066FF" />
+              <span>Quick Wireframe Starters</span>
             </div>
-            <h3>{search ? 'No projects matched your search' : 'No projects yet'}</h3>
-            <p>
-              {search
-                ? 'Try a different search query or clear the filter.'
-                : 'Create your first offline wireframing project to get started.'}
-            </p>
-            {!search && (
-              <button className="btn-primary lg" onClick={handleCreateNew}>
-                <Sparkles size={16} />
-                <span>Create New Project</span>
-              </button>
+            <span className="section-desc">Instantly scaffold wireframes with pre-built layouts</span>
+          </div>
+
+          <div className="templates-grid">
+            {/* Blank Canvas */}
+            <div className="template-card template-blank" onClick={handleCreateNew}>
+              <div className="template-icon-box">
+                <Plus size={24} />
+              </div>
+              <div className="template-info">
+                <div className="template-name">Blank Canvas</div>
+                <div className="template-sub">Start with an empty vector artboard</div>
+              </div>
+            </div>
+
+            {/* SaaS Landing Page */}
+            <div
+              className="template-card template-saas"
+              onClick={() => handleCreateFromTemplate('saas')}
+            >
+              <div className="template-icon-box" style={{ background: 'var(--chigma-block-lime)', color: '#000000' }}>
+                <Layout size={20} />
+              </div>
+              <div className="template-info">
+                <div className="template-name">SaaS Landing Page</div>
+                <div className="template-sub">Hero, CTA pills, metric bar charts &amp; feature cards</div>
+              </div>
+            </div>
+
+            {/* Mobile App Wireframe */}
+            <div
+              className="template-card template-mobile"
+              onClick={() => handleCreateFromTemplate('mobile')}
+            >
+              <div className="template-icon-box" style={{ background: 'var(--chigma-block-lilac)', color: '#000000' }}>
+                <Smartphone size={20} />
+              </div>
+              <div className="template-info">
+                <div className="template-name">Mobile App Wireframe</div>
+                <div className="template-sub">Phone container, avatar feed &amp; tab navigation</div>
+              </div>
+            </div>
+
+            {/* Analytics Dashboard */}
+            <div
+              className="template-card template-dashboard"
+              onClick={() => handleCreateFromTemplate('dashboard')}
+            >
+              <div className="template-icon-box" style={{ background: 'var(--chigma-block-mint)', color: '#000000' }}>
+                <BarChart3 size={20} />
+              </div>
+              <div className="template-info">
+                <div className="template-name">Analytics Dashboard</div>
+                <div className="template-sub">Sidebar, KPI summary widgets, line chart &amp; table</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Saved Projects Section */}
+        <section className="manager-projects-section">
+          <div className="section-header-row">
+            <div className="section-title">
+              <span>Your Offline Projects</span>
+              <span className="projects-count-pill">{projects.length}</span>
+            </div>
+
+            {/* Search filter */}
+            {projects.length > 0 && (
+              <div className="manager-search-box">
+                <Search size={14} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Filter projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             )}
           </div>
-        ) : (
-          <div className="projects-grid">
-            {/* New Project Quick Card */}
-            <div className="project-card new-card" onClick={handleCreateNew}>
-              <div className="new-card-icon">
-                <Plus size={28} />
+
+          {filteredProjects.length === 0 ? (
+            <div className="empty-projects-state">
+              <div className="empty-icon-circle">
+                <Layers size={28} />
               </div>
-              <span className="new-card-label">Create New Project</span>
+              <div className="empty-title">
+                {searchQuery ? 'No matching projects' : 'No projects created yet'}
+              </div>
+              <div className="empty-desc">
+                {searchQuery
+                  ? 'Try a different search query'
+                  : 'Create a new project or select one of the quick wireframe templates above to begin designing.'}
+              </div>
+              {!searchQuery && (
+                <button className="btn btn-primary" onClick={handleCreateNew}>
+                  <Plus size={14} />
+                  <span>Create Project</span>
+                </button>
+              )}
             </div>
+          ) : (
+            <div className="projects-grid">
+              {filteredProjects.map((p) => {
+                const dateStr = new Date(p.updatedAt).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
 
-            {/* Existing Projects */}
-            {filteredProjects.map((p) => {
-              const isEditing = editingId === p.id;
-              const isMenuOpen = activeMenuId === p.id;
+                const isMenuOpen = activeMenuId === p.id;
+                const isRenaming = renamingId === p.id;
 
-              return (
-                <div
-                  key={p.id}
-                  className="project-card"
-                  onClick={() => handleOpen(p.id)}
-                >
-                  {/* Thumbnail / Document Preview Banner */}
-                  <div className="project-card-preview">
-                    <FileCode size={36} className="preview-placeholder-icon" />
-                  </div>
+                return (
+                  <div
+                    key={p.id}
+                    className="project-card"
+                    onClick={() => handleOpenProject(p)}
+                  >
+                    {/* Thumbnail Preview Area */}
+                    <div className="project-thumbnail">
+                      <div className="thumbnail-canvas-placeholder">
+                        <Layout size={32} strokeWidth={1} />
+                      </div>
+                      <div className="thumbnail-meta">
+                        <span>{p.pageCount || 1} Page{p.pageCount > 1 ? 's' : ''}</span>
+                        <span>{p.nodeCount || 0} Elements</span>
+                      </div>
+                    </div>
 
-                  {/* Card Footer Info */}
-                  <div className="project-card-info" onClick={(e) => isEditing && e.stopPropagation()}>
-                    <div className="info-top">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          className="project-rename-input"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          onBlur={() => handleSaveRename(p.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveRename(p.id);
-                            if (e.key === 'Escape') setEditingId(null);
-                          }}
-                          autoFocus
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <h4
-                          className="project-card-name"
-                          onDoubleClick={(e) => handleStartRename(p.id, p.name, e)}
-                          title="Double click to rename"
-                        >
-                          {p.name}
-                        </h4>
-                      )}
+                    {/* Project Information */}
+                    <div className="project-info-row">
+                      <div className="project-details">
+                        {isRenaming ? (
+                          <input
+                            type="text"
+                            className="project-rename-input"
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={() => handleFinishRename(p.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleFinishRename(p.id);
+                              if (e.key === 'Escape') setRenamingId(null);
+                            }}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <div
+                            className="project-name"
+                            onDoubleClick={(e) => handleStartRename(p, e)}
+                            title="Double click to rename"
+                          >
+                            {p.name}
+                          </div>
+                        )}
+                        <div className="project-timestamp">
+                          <Clock size={11} />
+                          <span>Edited {dateStr}</span>
+                        </div>
+                      </div>
 
-                      {/* Action Menu Trigger */}
-                      <div className="card-menu-container">
+                      {/* Card Action Menu & Direct Delete */}
+                      <div className="project-card-actions" onClick={(e) => e.stopPropagation()}>
                         <button
-                          className="btn-icon xs card-menu-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveMenuId(isMenuOpen ? null : p.id);
-                          }}
+                          className="btn-icon xs danger delete-quick-btn"
+                          onClick={(e) => handleDelete(p, e)}
+                          title="Delete Project"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                        <button
+                          className={`btn-icon sm ${isMenuOpen ? 'active' : ''}`}
+                          onClick={() => setActiveMenuId(isMenuOpen ? null : p.id)}
+                          title="More Actions"
                         >
                           <MoreVertical size={14} />
                         </button>
 
-                        {/* Dropdown Menu */}
                         {isMenuOpen && (
-                          <div ref={menuRef} className="card-dropdown-menu">
-                            <button onClick={(e) => handleStartRename(p.id, p.name, e)}>
+                          <div className="card-menu-dropdown">
+                            <button
+                              className="menu-item"
+                              onClick={(e) => handleStartRename(p, e)}
+                            >
                               <Edit2 size={13} />
                               <span>Rename</span>
                             </button>
-                            <button onClick={(e) => handleDuplicate(p.id, e)}>
+                            <button
+                              className="menu-item"
+                              onClick={(e) => handleDuplicate(p.id, e)}
+                            >
                               <Copy size={13} />
                               <span>Duplicate</span>
                             </button>
-                            <button onClick={(e) => handleExport(p.id, e)}>
-                              <Download size={13} />
-                              <span>Export JSON</span>
-                            </button>
                             <div className="menu-divider" />
                             <button
-                              className="danger"
-                              onClick={(e) => handleDelete(p.id, p.name, e)}
+                              className="menu-item danger"
+                              onClick={(e) => handleDelete(p, e)}
                             >
                               <Trash2 size={13} />
-                              <span>Delete</span>
+                              <span>Delete Project</span>
                             </button>
                           </div>
                         )}
                       </div>
                     </div>
-
-                    <div className="info-meta">
-                      <span className="meta-item">
-                        <Clock size={12} />
-                        {formatDate(p.updatedAt)}
-                      </span>
-                      <span className="meta-item">
-                        <Layers size={12} />
-                        {p.pageCount} {p.pageCount === 1 ? 'page' : 'pages'}
-                      </span>
-                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </section>
       </main>
+
+      {/* Global Modals */}
+      <ConfirmModal />
+      <ImportModal />
     </div>
   );
 };

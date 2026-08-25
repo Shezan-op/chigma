@@ -2,7 +2,7 @@ import React from 'react';
 import type { ChigmaNode } from '../../models/node';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import type { StrokeStyle } from '../../models/styles';
-import { PRESET_COLORS } from '../../utils/color';
+import { PRESET_COLORS, FIGMA_PASTEL_COLORS } from '../../utils/color';
 
 interface FillStrokeSectionProps {
   selectedNodes: ChigmaNode[];
@@ -34,7 +34,7 @@ export const FillStrokeSection: React.FC<FillStrokeSectionProps> = ({ selectedNo
       {/* Fill Color */}
       {hasFill && (
         <div className="property-field full">
-          <label>Fill</label>
+          <label>Fill Color</label>
           <div className="color-picker-row">
             <input
               type="color"
@@ -57,8 +57,25 @@ export const FillStrokeSection: React.FC<FillStrokeSectionProps> = ({ selectedNo
               None
             </button>
           </div>
-          {/* Quick Presets */}
+
+          {/* Figma Signature Pastel Swatches */}
+          <div style={{ marginTop: 6, marginBottom: 2, fontSize: '11px', color: '#888888', fontWeight: 500 }}>
+            Figma Pastel Blocks
+          </div>
           <div className="color-presets-row">
+            {FIGMA_PASTEL_COLORS.map((p) => (
+              <span
+                key={p.value}
+                className="preset-dot"
+                style={{ backgroundColor: p.value }}
+                onClick={() => handleUpdate('fill', p.value)}
+                title={`Figma ${p.name} (${p.value})`}
+              />
+            ))}
+          </div>
+
+          {/* Classic Monochrome Presets */}
+          <div className="color-presets-row" style={{ marginTop: 4 }}>
             {PRESET_COLORS.slice(0, 8).map((c) => (
               <span
                 key={c}
@@ -76,7 +93,7 @@ export const FillStrokeSection: React.FC<FillStrokeSectionProps> = ({ selectedNo
       {hasStroke && (
         <>
           <div className="property-field full">
-            <label>Stroke</label>
+            <label>Stroke Color</label>
             <div className="color-picker-row">
               <input
                 type="color"

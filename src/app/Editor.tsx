@@ -8,53 +8,54 @@ import { ExportModal } from '../components/dialogs/ExportModal';
 import { ImportModal } from '../components/dialogs/ImportModal';
 import { ShortcutsModal } from '../components/dialogs/ShortcutsModal';
 import { ConfirmModal } from '../components/dialogs/ConfirmModal';
+import { CodeExportModal } from '../components/dialogs/CodeExportModal';
+import { CommandPaletteModal } from '../components/dialogs/CommandPaletteModal';
+import { setupKeyboardShortcuts } from '../engine/shortcuts/keyboardHandler';
 import { useAutosave } from '../persistence/autosave';
-import { handleGlobalKeyDown } from '../engine/shortcuts/keyboardHandler';
 
 interface EditorProps {
-  onBackToHome: () => void;
+  onBackToProjects: () => void;
 }
 
-export const Editor: React.FC<EditorProps> = ({ onBackToHome }) => {
-  // Start silent debounced autosave (600ms)
-  useAutosave(600);
+export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
+  // Activate Autosave Hook
+  useAutosave();
 
-  // Global Keyboard Shortcuts
+  // Setup Global Keyboard Shortcuts Listener
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      handleGlobalKeyDown(e);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    const cleanupShortcuts = setupKeyboardShortcuts();
+    return cleanupShortcuts;
   }, []);
 
   return (
-    <div className="chigma-editor-shell">
-      {/* 1. Top Header Toolbar */}
-      <TopToolbar onBackToHome={onBackToHome} />
+    <div className="chigma-editor-root">
+      {/* 1. Header Toolbar */}
+      <TopToolbar onBackToProjects={onBackToProjects} />
 
-      {/* 2. Main Workspace Body */}
-      <div className="chigma-workspace">
-        {/* Left Tool / Layers Sidebar */}
+      {/* 2. Main Work Area */}
+      <div className="chigma-work-area">
+        {/* Left: Tool Strip, Layers & Component Library */}
         <LeftSidebar />
 
-        {/* Center SVG Canvas */}
-        <main className="canvas-viewport-wrapper">
+        {/* Center: Scalable SVG Canvas */}
+        <main className="chigma-canvas-viewport">
           <Canvas />
         </main>
 
-        {/* Right Properties Inspector */}
+        {/* Right: Dynamic Properties Inspector */}
         <PropertiesPanel />
       </div>
 
       {/* 3. Bottom Status Bar */}
       <StatusBar />
 
-      {/* 4. Global Modals & Dialogs */}
+      {/* 4. Modals & Dialogs */}
       <ExportModal />
       <ImportModal />
       <ShortcutsModal />
       <ConfirmModal />
+      <CodeExportModal />
+      <CommandPaletteModal />
     </div>
   );
 };

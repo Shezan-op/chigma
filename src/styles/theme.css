@@ -1,37 +1,80 @@
 :root {
-  /* Color Palette - Figma-inspired sleek dark/neutral theme */
-  --bg-app: #18181b;
-  --bg-panel: #1e1e24;
-  --bg-panel-hover: #27272f;
-  --bg-panel-active: #32323e;
-  --bg-input: #121216;
-  --bg-card: #22222a;
-  --bg-canvas: #e5e7eb;
+  /* Figma Brand Design System (DESIGN.md) */
+  --chigma-primary: #000000;
+  --chigma-on-primary: #ffffff;
+  --chigma-ink: #000000;
+  --chigma-canvas: #ffffff;
+  --chigma-inverse-canvas: #000000;
+  --chigma-inverse-ink: #ffffff;
+  --chigma-on-inverse-soft: #ffffff;
+  --chigma-hairline: #e6e6e6;
+  --chigma-hairline-soft: #f1f1f1;
+  --chigma-surface-soft: #f7f7f5;
 
-  --border-subtle: #2d2d38;
-  --border-strong: #3f3f4e;
-  --border-focus: #3b82f6;
+  /* Signature Pastel Blocks */
+  --chigma-block-lime: #dceeb1;
+  --chigma-block-lilac: #c5b0f4;
+  --chigma-block-cream: #f4ecd6;
+  --chigma-block-pink: #efd4d4;
+  --chigma-block-mint: #c8e6cd;
+  --chigma-block-coral: #f3c9b6;
+  --chigma-block-navy: #1f1d3d;
+  --chigma-accent-magenta: #ff3d8b;
+  --chigma-semantic-success: #1ea64a;
+  --chigma-overlay-scrim: rgba(0, 0, 0, 0.4);
 
-  --text-primary: #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --text-inverse: #18181b;
+  /* Modern UI Palette */
+  --chigma-bg-app: #f7f7f5;
+  --chigma-bg-canvas: #ebebeb;
+  --chigma-bg-panel: #ffffff;
+  --chigma-bg-header: #ffffff;
+  --chigma-bg-hover: #f1f1f1;
+  --chigma-bg-active: #e6e6e6;
+  --chigma-bg-selected: #e8f0fe;
 
-  --accent-primary: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-light: rgba(59, 130, 246, 0.15);
-  --accent-danger: #ef4444;
-  --accent-success: #10b981;
-  --accent-warning: #f59e0b;
+  --chigma-border-subtle: #f1f1f1;
+  --chigma-border: #e6e6e6;
+  --chigma-border-focus: #000000;
+  --chigma-border-selected: #0066ff;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  --chigma-text-primary: #000000;
+  --chigma-text-secondary: #555555;
+  --chigma-text-tertiary: #888888;
+  --chigma-text-disabled: #bbbbbb;
+  --chigma-text-inverse: #ffffff;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --chigma-accent: #0066ff;
+  --chigma-accent-hover: #0052cc;
+  --chigma-accent-subtle: rgba(0, 102, 255, 0.08);
 
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --chigma-success: #1ea64a;
+  --chigma-warning: #f59e0b;
+  --chigma-danger: #ef4444;
+
+  /* Typography */
+  --chigma-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --chigma-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Border Radii */
+  --chigma-radius-xs: 2px;
+  --chigma-radius-sm: 6px;
+  --chigma-radius-md: 8px;
+  --chigma-radius-lg: 16px;
+  --chigma-radius-xl: 24px;
+  --chigma-radius-pill: 50px;
+  --chigma-radius-full: 9999px;
+
+  /* Shadows */
+  --chigma-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --chigma-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --chigma-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --chigma-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --chigma-shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.16);
+
+  /* Layout dimensions */
+  --chigma-header-height: 48px;
+  --chigma-sidebar-width: 250px;
+  --chigma-properties-width: 280px;
+  --chigma-statusbar-height: 28px;
+  --chigma-tool-strip-width: 44px;
 }

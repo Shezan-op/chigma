@@ -26,12 +26,11 @@ export const App: React.FC = () => {
     init();
   }, []);
 
-  const handleOpenProject = (doc: any) => {
-    setDocument(doc);
+  const handleOpenEditor = () => {
     setCurrentView('editor');
   };
 
-  const handleBackToHome = () => {
+  const handleBackToProjects = () => {
     setCurrentView('manager');
   };
 
@@ -48,12 +47,12 @@ export const App: React.FC = () => {
     <div className="chigma-app-root">
       {currentView === 'manager' ? (
         <>
-          <ProjectManager onOpenProject={handleOpenProject} />
+          <ProjectManager onOpenEditor={handleOpenEditor} />
           <ImportModal />
           <ConfirmModal />
         </>
       ) : (
-        <Editor onBackToHome={handleBackToHome} />
+        <Editor onBackToProjects={handleBackToProjects} />
       )}
     </div>
   );
