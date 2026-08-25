@@ -10,6 +10,7 @@ import { ShortcutsModal } from '../components/dialogs/ShortcutsModal';
 import { ConfirmModal } from '../components/dialogs/ConfirmModal';
 import { CodeExportModal } from '../components/dialogs/CodeExportModal';
 import { CommandPaletteModal } from '../components/dialogs/CommandPaletteModal';
+import { PrototypePlayerModal } from '../components/prototype/PrototypePlayerModal';
 import { setupKeyboardShortcuts } from '../engine/shortcuts/keyboardHandler';
 import { useAutosave } from '../persistence/autosave';
 
@@ -56,6 +57,7 @@ export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
       <ConfirmModal />
       <CodeExportModal />
       <CommandPaletteModal />
+      <PrototypePlayerModal />
     </div>
   );
 };

@@ -994,3 +994,74 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+
+/* 9. Mobile & Tablet PWA Responsive Styles */
+@media (max-width: 1024px) {
+  .chigma-sidebar-content {
+    width: 220px;
+  }
+  .chigma-properties-panel {
+    width: 230px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chigma-top-toolbar {
+    padding: 0 8px;
+    height: 48px;
+  }
+
+  .toolbar-section.left {
+    min-width: unset;
+  }
+
+  .brand-subtitle,
+  .command-palette-trigger kbd {
+    display: none;
+  }
+
+  .command-palette-trigger {
+    padding: 4px 10px;
+  }
+
+  .chigma-tool-strip {
+    width: 38px;
+    padding: 4px 0;
+  }
+
+  .chigma-sidebar-content {
+    position: absolute;
+    left: 38px;
+    top: 0;
+    bottom: 0;
+    z-index: 50;
+    box-shadow: var(--chigma-shadow-lg);
+  }
+
+  .chigma-properties-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 50;
+    box-shadow: var(--chigma-shadow-lg);
+  }
+
+  .manager-header {
+    padding: 12px 16px;
+  }
+
+  .manager-content {
+    padding: 16px;
+    gap: 24px;
+  }
+
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

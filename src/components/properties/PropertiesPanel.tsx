@@ -6,6 +6,8 @@ import { FillStrokeSection } from './FillStrokeSection';
 import { TypographySection } from './TypographySection';
 import { ChartSection } from './ChartSection';
 import { WireframeSection } from './WireframeSection';
+import { AutoLayoutSection } from './AutoLayoutSection';
+import { InteractionSection } from './InteractionSection';
 import { isChartNode, isWireframeNode, type TextNode, type ChigmaNode } from '../../models/node';
 import { Sliders } from 'lucide-react';
 
@@ -76,8 +78,14 @@ export const PropertiesPanel: React.FC = () => {
         {/* Geometry / Dimensions Section */}
         <GeometrySection selectedNodes={selectedNodes} />
 
+        {/* Auto-Layout & Spacing Section */}
+        <AutoLayoutSection selectedNodes={selectedNodes} />
+
         {/* Fill & Stroke Section */}
         <FillStrokeSection selectedNodes={selectedNodes} />
+
+        {/* Prototyping Interaction Section */}
+        <InteractionSection selectedNodes={selectedNodes} />
 
         {/* Typography (Single Text Node) */}
         {!isMultiple && first.type === 'text' && (

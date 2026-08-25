@@ -9,6 +9,23 @@ import type {
   SidebarItem
 } from './wireframes';
 
+export interface InteractionLink {
+  trigger: 'click' | 'hover';
+  action: 'navigate' | 'openModal' | 'back' | 'url';
+  targetPageId?: string;
+  targetUrl?: string;
+}
+
+export interface AutoLayoutConfig {
+  enabled: boolean;
+  direction: 'horizontal' | 'vertical';
+  gap: number;
+  paddingX: number;
+  paddingY: number;
+  alignItems: 'start' | 'center' | 'end' | 'stretch';
+  justifyContent: 'start' | 'center' | 'end' | 'space-between';
+}
+
 export interface BaseNode {
   id: string;
   name: string;
@@ -21,6 +38,7 @@ export interface BaseNode {
   visible: boolean;
   locked: boolean;
   parentId?: string; // If inside a frame or group
+  interaction?: InteractionLink; // Prototyping navigation link
 }
 
 // 1. Shapes
@@ -106,11 +124,13 @@ export interface FrameNode extends BaseNode {
   cornerRadius: number;
   clipContent: boolean;
   children?: ChigmaNode[];
+  autoLayout?: AutoLayoutConfig;
 }
 
 export interface GroupNode extends BaseNode {
   type: 'group';
   children: ChigmaNode[];
+  autoLayout?: AutoLayoutConfig;
 }
 
 // 4. Media

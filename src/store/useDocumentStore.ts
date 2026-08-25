@@ -50,6 +50,9 @@ export interface DocumentState {
   ungroupNodes: (groupId: string) => string[];
   alignNodes: (type: AlignmentType, ids: string[]) => void;
   distributeNodes: (type: DistributionType, ids: string[]) => void;
+  stackNodes: (direction: 'horizontal' | 'vertical', gap: number, ids: string[]) => void;
+  setNodeInteraction: (id: string, interaction?: any) => void;
+  setNodeAutoLayout: (id: string, autoLayout?: any) => void;
 
   // Clipboard
   copy: (ids: string[]) => void;
@@ -594,6 +597,40 @@ export const useDocumentStore = create<DocumentState>((set, get) => {
       }
 
       get().updateNodes(updates, true, `Distribute ${type}`);
+    },
+
+    stackNodes: (direction, gap, ids) => {
+      const page = get().getActivePage();
+      if (!page || ids.length < 2) return;
+
+      const nodes = page.children.filter((n) => ids.includes(n.id));
+      if (nodes.length < 2) return;
+
+      const sorted = [...nodes].sort((a, b) => (direction === 'horizontal' ? a.x - b.x : a.y - b.y));
+      const first = sorted[0];
+      const updates: { id: string; props: Partial<ChigmaNode> }[] = [];
+
+      let currentOffset = direction === 'horizontal' ? first.x : first.y;
+
+      sorted.forEach((n) => {
+        if (direction === 'horizontal') {
+          updates.push({ id: n.id, props: { x: currentOffset, y: first.y } });
+          currentOffset += n.width + gap;
+        } else {
+          updates.push({ id: n.id, props: { y: currentOffset, x: first.x } });
+          currentOffset += n.height + gap;
+        }
+      });
+
+      get().updateNodes(updates, true, `Stack ${direction} (${gap}px gap)`);
+    },
+
+    setNodeInteraction: (id, interaction) => {
+      get().updateNode(id, { interaction }, true, 'Update interaction link');
+    },
+
+    setNodeAutoLayout: (id, autoLayout) => {
+      get().updateNode(id, { autoLayout }, true, 'Update auto-layout');
     },
 
     copy: (ids) => {

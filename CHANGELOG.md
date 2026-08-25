@@ -1,8 +1,38 @@
 # Changelog
 
-All notable changes to the **Chigma** local-first wireframing and visual design platform are documented in this file.
+All notable changes to the **Chigma** local-first wireframing, prototyping, and visual design platform are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.2.0] - 2026-08-26
+
+### 🚀 Added
+- **Figma Auto-Layout & Spacing Stacks (`autoLayout.ts`)**:
+  - Horizontal & Vertical auto-layout for frame containers with configurable gap, padding (X/Y), and alignment.
+  - Multi-selection 1-click **Row Stack** & **Column Stack** with preset spacing tokens (`4px`, `8px`, `12px`, `16px`, `24px`, `32px`, `48px`).
+- **Interactive Prototyping Mode & Player (`PrototypePlayerModal.tsx`)**:
+  - Fullscreen interactive presentation view (`Present` button or `Ctrl+Alt+Enter` / `F5`).
+  - Device frame preview modes: **Desktop (MacBook)**, **Tablet (iPad Air)**, **Mobile (iPhone 15 Pro)**, and **Fullscreen Canvas**.
+  - Interactive hotspot link triggers to navigate between screens on click with visual pulse feedback.
+- **Smart Distance Measurement Guides (Hold `Alt` / `Option`)**:
+  - Displays real-time pixel distance badges (e.g. `16px`, `24px`, `32px`, `8px`) and guideline arrows between the selected element and any hovered element/frame boundary.
+- **Smart Duplicate with Offset Memory (`Ctrl+D`)**:
+  - Clones elements and automatically memorizes displacement vectors to repeat the exact spacing offset on consecutive duplicates.
+- **Arrow Key Nudging**:
+  - Precision 1px nudge with Arrow keys (`↑`, `↓`, `←`, `→`), and 8px (grid unit) nudge with `Shift + Arrow keys`.
+- **Pre-Built Wireframe Section Blocks Library**:
+  - 1-Click insertion of pre-composed wireframe modules:
+    - *Hero Header Section*
+    - *Pricing 3-Tier Comparison Grid*
+    - *Feature 3-Card Grid*
+    - *Sign In / Auth Form Card*
+    - *User Profile Header with Stats*
+    - *Newsletter Subscribe Banner*
+- **Progressive Web App (PWA) & Mobile Support**:
+  - Offline Service Worker (`sw.js`) and `manifest.webmanifest`.
+  - Responsive collapsible sidebars and touch-friendly targets for mobile phones and tablets.
 
 ---
 
@@ -20,22 +50,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Figma Quick Actions / Command Palette (`Ctrl+K` / `Cmd+K`)**:
   - Instant searchable command modal to insert 20+ wireframe components, switch tools, change zoom levels, export code, or toggle canvas options.
 - **Quick Wireframe Starter Templates**:
-  - *SaaS Landing Page*: Hero section, pill badges, CTA buttons, metrics bar chart, and feature cards.
-  - *Mobile App Wireframe*: Mobile phone frame container, user avatar feed, and bottom tab navigation.
-  - *Analytics Dashboard*: App sidebar, KPI summary cards, line trend chart, donut chart, and data table.
+  - *SaaS Landing Page*, *Mobile App Wireframe*, *Analytics Dashboard*.
 - **Pixel Coordinate Rulers (`RulersOverlay.tsx`)**:
-  - Horizontal and vertical rulers with adaptive world coordinate tick marks scaling with zoom. Toggle with `Shift+R`.
+  - Horizontal and vertical rulers with adaptive world coordinate tick marks scaling with zoom (`Shift+R`).
 - **Hand Tool & Spacebar Pan (`H` / Spacebar)**:
-  - Figma-style frictionless panning across infinite canvas coordinates.
+  - Frictionless panning across infinite canvas coordinates.
 - **Direct Project Deletion & Project Manager Enhancements**:
-  - Quick-delete button on project cards with confirmation modal.
-  - Search filter for offline projects.
-  - Project duplication and inline renaming.
-
-### ⚡ Performance & Polish
-- **60fps Frictionless Canvas Rendering**:
-  - Implemented `requestAnimationFrame` throttled pointer move loop for drag, resize, rotate, and marquee operations, eliminating interaction lag.
-  - Sub-pixel SVG rendering optimizations.
+  - Quick-delete button on project cards with confirmation modal, project duplication, and search filter.
 
 ---
 

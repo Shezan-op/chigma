@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="128" fill="#000000"/>
+  <!-- Figma-inspired geometric brand shape -->
+  <circle cx="256" cy="170" r="70" fill="#DCEEB1" />
+  <rect x="186" y="240" width="140" height="140" rx="32" fill="#C5B0F4" />
+  <circle cx="256" cy="310" r="32" fill="#FFFFFF" />
+</svg>

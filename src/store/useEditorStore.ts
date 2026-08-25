@@ -46,6 +46,10 @@ export interface EditorState {
   hoveredId: string | null;
   setHoveredId: (id: string | null) => void;
 
+  // Measurement & Alt Key
+  altPressed: boolean;
+  setAltPressed: (pressed: boolean) => void;
+
   // Inline Text Editing
   editingTextNodeId: string | null;
   setEditingTextNodeId: (id: string | null) => void;
@@ -72,6 +76,10 @@ export interface EditorState {
   interaction: DragInteractionState | null;
   setInteraction: (interaction: DragInteractionState | null) => void;
 
+  // Duplicate Memory (Offset tracking)
+  lastDuplicateOffset: { x: number; y: number } | null;
+  setLastDuplicateOffset: (offset: { x: number; y: number } | null) => void;
+
   // UI Panels
   leftSidebarTab: 'layers' | 'components';
   setLeftSidebarTab: (tab: 'layers' | 'components') => void;
@@ -80,11 +88,13 @@ export interface EditorState {
   propertiesCollapsed: boolean;
   setPropertiesCollapsed: (collapsed: boolean) => void;
 
-  // Modals & Palettes
+  // Modals, Palettes & Prototype Mode
   isCommandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
   isCodeExportModalOpen: boolean;
   setCodeExportModalOpen: (open: boolean) => void;
+  isPrototypeMode: boolean;
+  setPrototypeMode: (open: boolean) => void;
 
   // Active Drawing Shape preview
   drawingShapeType: NodeType | null;
@@ -121,9 +131,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((state) => ({ viewport: { ...state.viewport, zoom: 1 } }));
   },
 
-  zoomAroundPoint: (screenX, screenY, nextZoom) => {
-    const next = calculateZoomAroundPoint(get().viewport, { x: screenX, y: screenY }, nextZoom);
-    set({ viewport: next });
+  zoomAroundPoint: (screenX, screenY, newZoom) => {
+    const { viewport } = get();
+    const nextVp = calculateZoomAroundPoint(viewport, { x: screenX, y: screenY }, newZoom);
+    set({ viewport: nextVp });
   },
 
   pan: (dx, dy) => {
@@ -138,61 +149,64 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   activeTool: 'select',
   setActiveTool: (tool) => {
-    set({
-      activeTool: tool,
-      drawingShapeType: ['select', 'hand'].includes(tool) ? null : (tool as NodeType)
-    });
+    set({ activeTool: tool });
+    if (tool !== 'select' && tool !== 'hand') {
+      get().deselectAll();
+    }
   },
 
   selectedIds: [],
   setSelectedIds: (ids) => set({ selectedIds: ids }),
   selectNode: (id, multi = false) => {
-    const current = get().selectedIds;
+    const { selectedIds } = get();
     if (multi) {
-      if (current.includes(id)) {
-        set({ selectedIds: current.filter((x) => x !== id) });
+      if (selectedIds.includes(id)) {
+        set({ selectedIds: selectedIds.filter((item) => item !== id) });
       } else {
-        set({ selectedIds: [...current, id] });
+        set({ selectedIds: [...selectedIds, id] });
       }
     } else {
       set({ selectedIds: [id] });
     }
   },
-  deselectAll: () => set({ selectedIds: [], editingTextNodeId: null }),
+  deselectAll: () => set({ selectedIds: [] }),
   hoveredId: null,
   setHoveredId: (id) => set({ hoveredId: id }),
+
+  altPressed: false,
+  setAltPressed: (pressed) => set({ altPressed: pressed }),
 
   editingTextNodeId: null,
   setEditingTextNodeId: (id) => set({ editingTextNodeId: id }),
 
   showGrid: getPreference('showGrid', true),
   setShowGrid: (show) => {
-    setPreference('showGrid', show);
     set({ showGrid: show });
+    setPreference('showGrid', show);
   },
 
   showRulers: getPreference('showRulers', true),
   setShowRulers: (show) => {
-    setPreference('showRulers', show);
     set({ showRulers: show });
+    setPreference('showRulers', show);
   },
 
   gridSize: getPreference('gridSize', 8),
   setGridSize: (size) => {
-    setPreference('gridSize', size);
     set({ gridSize: size });
+    setPreference('gridSize', size);
   },
 
   snapToGrid: getPreference('snapToGrid', true),
   setSnapToGrid: (snap) => {
-    setPreference('snapToGrid', snap);
     set({ snapToGrid: snap });
+    setPreference('snapToGrid', snap);
   },
 
   snapToObjects: getPreference('snapToObjects', true),
   setSnapToObjects: (snap) => {
-    setPreference('snapToObjects', snap);
     set({ snapToObjects: snap });
+    setPreference('snapToObjects', snap);
   },
 
   activeSnapGuides: [],
@@ -203,15 +217,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   interaction: null,
   setInteraction: (interaction) => set({ interaction }),
 
+  lastDuplicateOffset: null,
+  setLastDuplicateOffset: (offset) => set({ lastDuplicateOffset: offset }),
+
   leftSidebarTab: getPreference('leftSidebarTab', 'layers'),
   setLeftSidebarTab: (tab) => {
-    setPreference('leftSidebarTab', tab);
     set({ leftSidebarTab: tab });
+    setPreference('leftSidebarTab', tab);
   },
 
   sidebarCollapsed: false,
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-
   propertiesCollapsed: false,
   setPropertiesCollapsed: (collapsed) => set({ propertiesCollapsed: collapsed }),
 
@@ -220,6 +236,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   isCodeExportModalOpen: false,
   setCodeExportModalOpen: (open) => set({ isCodeExportModalOpen: open }),
+
+  isPrototypeMode: false,
+  setPrototypeMode: (open) => set({ isPrototypeMode: open }),
 
   drawingShapeType: null,
   setDrawingShapeType: (type) => set({ drawingShapeType: type })

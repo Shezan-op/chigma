@@ -18,7 +18,8 @@ import {
   HelpCircle,
   Code,
   Search,
-  Sliders
+  Sliders,
+  Play
 } from 'lucide-react';
 
 interface TopToolbarProps {
@@ -48,7 +49,8 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
     setShowRulers,
     selectedIds,
     setCommandPaletteOpen,
-    setCodeExportModalOpen
+    setCodeExportModalOpen,
+    setPrototypeMode
   } = useEditorStore();
 
   const { setExportModalOpen, setImportModalOpen, setShortcutsModalOpen } = useProjectStore();
@@ -208,6 +210,17 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
             <ZoomIn size={15} />
           </button>
         </div>
+
+        {/* Present / Play Prototype */}
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setPrototypeMode(true)}
+          title="Play Interactive Prototype (Ctrl+Alt+Enter)"
+          style={{ borderRadius: '50px', display: 'flex', alignItems: 'center', gap: 5 }}
+        >
+          <Play size={12} fill="#000000" />
+          <span>Present</span>
+        </button>
 
         {/* Export to Code Pill */}
         <button

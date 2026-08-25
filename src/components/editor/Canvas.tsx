@@ -7,6 +7,7 @@ import { SnappingGuidesOverlay } from './SnappingGuidesOverlay';
 import { MarqueeOverlay } from './MarqueeOverlay';
 import { TextEditorOverlay } from './TextEditorOverlay';
 import { RulersOverlay } from './RulersOverlay';
+import { DistanceMeasurementOverlay } from './DistanceMeasurementOverlay';
 import { screenToWorld } from '../../engine/geometry/matrix';
 import { calculateResize, type HandleType } from '../../engine/geometry/resize';
 import { calculateRotation } from '../../engine/geometry/rotation';
@@ -762,6 +763,9 @@ export const Canvas: React.FC = () => {
           {selectedNodes.length > 0 && !editingTextNode && (
             <TransformOverlay selectedNodes={selectedNodes} viewport={viewport} />
           )}
+
+          {/* Smart Distance Measurement Overlay (Alt Key) */}
+          <DistanceMeasurementOverlay />
 
           {/* Dynamic Snapping Alignment Guides */}
           {activeSnapGuides.length > 0 && (
