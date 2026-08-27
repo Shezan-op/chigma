@@ -3,6 +3,8 @@ import { useEditorStore } from '../../store/useEditorStore';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { createDefaultNode } from '../../models/document';
 import { screenToWorld } from '../../engine/geometry/matrix';
+import { normalizeSpacing } from '../../engine/layout/smartSpacing';
+import { createComponentMaster } from '../../engine/components/componentEngine';
 import type { NodeType } from '../../models/node';
 import {
   Search,
@@ -23,13 +25,21 @@ import {
   PieChart,
   BarChart,
   CornerUpLeft,
-  CornerUpRight
+  CornerUpRight,
+  Smile,
+  Palette,
+  ShieldCheck,
+  Smartphone,
+  Component,
+  AlignVerticalSpaceAround,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface PaletteCommand {
   id: string;
   title: string;
-  category: 'Insert' | 'Tools' | 'Actions' | 'View';
+  category: 'Insert' | 'Tools' | 'Actions' | 'View' | 'Design System';
   icon: React.ReactNode;
   shortcut?: string;
   action: () => void;
@@ -47,11 +57,27 @@ export const CommandPaletteModal: React.FC = () => {
     setShowGrid,
     showRulers,
     setShowRulers,
+    selectedIds,
     setSelectedIds,
-    setCodeExportModalOpen
+    setCodeExportModalOpen,
+    setIconPickerOpen,
+    setDesignSystemModalOpen,
+    setAccessibilityModalOpen,
+    setResponsivePreviewOpen
   } = useEditorStore();
 
-  const { addNode, undo, redo, canUndo, canRedo } = useDocumentStore();
+  const {
+    document: doc,
+    addNode,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    updateDocument,
+    updateNodes,
+    getNodeById
+  } = useDocumentStore();
+
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -76,6 +102,103 @@ export const CommandPaletteModal: React.FC = () => {
   };
 
   const commands: PaletteCommand[] = [
+    // Design System & Advanced Tools
+    {
+      id: 'action_icon_picker',
+      title: 'Insert Vector Icon...',
+      category: 'Insert',
+      icon: <Smile size={15} color="#0066FF" />,
+      shortcut: 'I',
+      action: () => {
+        setCommandPaletteOpen(false);
+        setIconPickerOpen(true);
+      }
+    },
+    {
+      id: 'action_design_system',
+      title: 'Design System & Variables (Tokens, Styles, Modes)',
+      category: 'Design System',
+      icon: <Palette size={15} color="#8B5CF6" />,
+      shortcut: 'Shift+D',
+      action: () => {
+        setCommandPaletteOpen(false);
+        setDesignSystemModalOpen(true);
+      }
+    },
+    {
+      id: 'action_a11y_audit',
+      title: 'Run Accessibility & Contrast Check (WCAG)',
+      category: 'Actions',
+      icon: <ShieldCheck size={15} color="#10B981" />,
+      action: () => {
+        setCommandPaletteOpen(false);
+        setAccessibilityModalOpen(true);
+      }
+    },
+    {
+      id: 'action_responsive_preview',
+      title: 'Responsive Breakpoint Preview & Slider',
+      category: 'View',
+      icon: <Smartphone size={15} color="#F59E0B" />,
+      action: () => {
+        setCommandPaletteOpen(false);
+        setResponsivePreviewOpen(true);
+      }
+    },
+    {
+      id: 'action_create_component',
+      title: 'Convert Selection to Master Component',
+      category: 'Design System',
+      icon: <Component size={15} color="#7C3AED" />,
+      shortcut: 'Ctrl+Alt+K',
+      action: () => {
+        if (selectedIds.length > 0) {
+          const node = getNodeById(selectedIds[0]);
+          if (node) {
+            const { master, updatedNode } = createComponentMaster(node);
+            const currentComponents = doc.components || [];
+            updateDocument({ components: [...currentComponents, master] });
+            updateNodes([{ id: node.id, props: updatedNode }]);
+          }
+        }
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'action_normalize_spacing',
+      title: 'Normalize Spacing to 8px Design Grid',
+      category: 'Actions',
+      icon: <AlignVerticalSpaceAround size={15} color="#0066FF" />,
+      action: () => {
+        const nodes = selectedIds.map((id) => getNodeById(id)).filter((n): n is any => Boolean(n));
+        if (nodes.length > 1) {
+          const normalized = normalizeSpacing(nodes, 8);
+          updateNodes(normalized.map((n) => ({ id: n.id, props: { x: n.x, y: n.y } })));
+        }
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'action_mode_light',
+      title: 'Switch to Light Mode Tokens',
+      category: 'Design System',
+      icon: <Sun size={15} />,
+      action: () => {
+        updateDocument({ activeModeId: 'light' });
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'action_mode_dark',
+      title: 'Switch to Dark Mode Tokens',
+      category: 'Design System',
+      icon: <Moon size={15} />,
+      action: () => {
+        updateDocument({ activeModeId: 'dark' });
+        setCommandPaletteOpen(false);
+      }
+    },
+
     // Tools
     {
       id: 'tool_select',

@@ -63,7 +63,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
     try {
       let docName = 'SaaS Landing Page';
       if (templateType === 'mobile') docName = 'Mobile App Wireframe';
-      if (templateType === 'dashboard') docName = 'Analytics Dashboard';
+      if (templateType === 'dashboard') docName = 'Modern SaaS Analytics Dashboard';
 
       const newDoc = await createProject(docName);
       const page = createDefaultPage('Page 1');
@@ -107,14 +107,71 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
         ];
       } else if (templateType === 'dashboard') {
         page.children = [
-          createDefaultNode('sidebar', 80, 40, { width: 220, height: 720, title: 'Enterprise Hub' }),
-          createDefaultNode('navbar', 320, 40, { width: 860, height: 60, brandName: 'Analytics Overview' }),
-          createDefaultNode('card', 320, 120, { width: 260, height: 110, title: 'Total Revenue', subtitle: '+18.4% from last month', content: '$124,500' }),
-          createDefaultNode('card', 600, 120, { width: 260, height: 110, title: 'Active Users', subtitle: '+12.1% growth', content: '48,290' }),
-          createDefaultNode('card', 880, 120, { width: 300, height: 110, title: 'Conversion Rate', subtitle: 'Target: 4.5%', content: '4.82%' }),
-          createDefaultNode('line-chart', 320, 250, { width: 560, height: 260, title: 'User Acquisition Trend' }),
-          createDefaultNode('donut-chart', 900, 250, { width: 280, height: 260, title: 'Traffic by Channel' }),
-          createDefaultNode('table', 320, 530, { width: 860, height: 210, headers: ['Client', 'Tier', 'Status', 'Renewal'] })
+          createDefaultNode('sidebar', 80, 40, {
+            width: 220,
+            height: 760,
+            title: 'Analytics Cloud',
+            fill: '#F7F7F5'
+          }),
+          createDefaultNode('navbar', 320, 40, {
+            width: 900,
+            height: 60,
+            brandName: 'Performance Overview',
+            showAvatar: true,
+            showSearch: true
+          }),
+          // 3 KPI Metric Cards with Shadow & pastel tokens
+          createDefaultNode('card', 320, 120, {
+            width: 280,
+            height: 120,
+            title: 'Gross Revenue',
+            subtitle: '+18.4% from previous cycle',
+            content: '$148,290.00',
+            cornerRadius: 10,
+            effects: [{ id: 'e1', type: 'drop-shadow', visible: true, x: 0, y: 4, blur: 12, spread: 0, color: '#000000', opacity: 0.06 }]
+          }),
+          createDefaultNode('card', 630, 120, {
+            width: 280,
+            height: 120,
+            title: 'Active Subscribers',
+            subtitle: '+1,420 net new accounts',
+            content: '52,840 users',
+            cornerRadius: 10,
+            effects: [{ id: 'e2', type: 'drop-shadow', visible: true, x: 0, y: 4, blur: 12, spread: 0, color: '#000000', opacity: 0.06 }]
+          }),
+          createDefaultNode('card', 940, 120, {
+            width: 280,
+            height: 120,
+            title: 'Conversion Rate',
+            subtitle: 'Target goal: 4.50%',
+            content: '5.12%',
+            cornerRadius: 10,
+            effects: [{ id: 'e3', type: 'drop-shadow', visible: true, x: 0, y: 4, blur: 12, spread: 0, color: '#000000', opacity: 0.06 }]
+          }),
+          // Charts
+          createDefaultNode('line-chart', 320, 260, {
+            width: 590,
+            height: 270,
+            title: 'Annual Revenue & Growth Velocity',
+            curved: true
+          }),
+          createDefaultNode('donut-chart', 940, 260, {
+            width: 280,
+            height: 270,
+            title: 'Device & Platform Share'
+          }),
+          // Recent Transactions Table
+          createDefaultNode('table', 320, 550, {
+            width: 900,
+            height: 250,
+            headers: ['Customer', 'Plan Tier', 'Status', 'MRR Value', 'Date'],
+            rows: [
+              ['Stripe Inc.', 'Enterprise Pro', 'Active', '$2,400/mo', 'Aug 26'],
+              ['Vercel Labs', 'Scale Tier', 'Active', '$1,200/mo', 'Aug 25'],
+              ['Linear App', 'Growth Tier', 'Active', '$850/mo', 'Aug 24'],
+              ['Raycast Org', 'Starter Tier', 'Pending', '$350/mo', 'Aug 22']
+            ]
+          })
         ];
       }
 
@@ -268,7 +325,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
                 <BarChart3 size={20} />
               </div>
               <div className="template-info">
-                <div className="template-name">Analytics Dashboard</div>
+                <div className="template-name">Modern SaaS Dashboard</div>
                 <div className="template-sub">Sidebar, KPI summary widgets, line chart &amp; table</div>
               </div>
             </div>

@@ -1,5 +1,7 @@
 import type { Page } from '../../models/document';
-import type { ChigmaNode, GroupNode } from '../../models/node';
+import type { ChigmaNode, GroupNode, IconNode, SvgNode, ImageNode } from '../../models/node';
+import type { CornerRadii, Effect, LinearGradient } from '../../models/styles';
+import { getIconByName } from '../icons/iconRegistry';
 
 export interface GeneratedCode {
   html: string;
@@ -8,11 +10,43 @@ export interface GeneratedCode {
   fullDocument: string;
 }
 
+function resolveBorderRadiusCss(radii?: number | CornerRadii): string {
+  if (!radii) return '0px';
+  if (typeof radii === 'number') return `${radii}px`;
+  return `${radii.topLeft || 0}px ${radii.topRight || 0}px ${radii.bottomRight || 0}px ${radii.bottomLeft || 0}px`;
+}
+
+function resolveBoxShadowCss(effects?: Effect[]): string {
+  if (!effects || effects.length === 0) return '';
+  const shadows = effects
+    .filter((e) => e.visible && (e.type === 'drop-shadow' || e.type === 'inner-shadow'))
+    .map((e) => {
+      const inset = e.type === 'inner-shadow' ? 'inset ' : '';
+      return `${inset}${e.x}px ${e.y}px ${e.blur}px ${e.spread || 0}px ${e.color}`;
+    });
+  return shadows.length > 0 ? `box-shadow: ${shadows.join(', ')};` : '';
+}
+
+function resolveFillCss(node: ChigmaNode): string {
+  if (node.fills && node.fills.length > 0) {
+    const activeFill = node.fills.find((f) => f.visible);
+    if (activeFill) {
+      if (activeFill.type === 'gradient' && activeFill.gradient) {
+        const grad = activeFill.gradient as LinearGradient;
+        const stops = grad.stops.map((s) => `${s.color} ${Math.round(s.offset * 100)}%`).join(', ');
+        return `background: linear-gradient(${grad.angle || 90}deg, ${stops});`;
+      }
+      if (activeFill.color) return `background: ${activeFill.color};`;
+    }
+  }
+  return node.fill ? `background: ${node.fill};` : 'background: transparent;';
+}
+
 export function generateWireframeCode(page: Page, documentName = 'Wireframe'): GeneratedCode {
   const nodes = page.children || [];
 
   // Generate CSS
-  const css = `/* Chigma Generated Stylesheet - ${documentName} */
+  const css = `/* Chigma Design Engine Stylesheet - ${documentName} */
 :root {
   --primary: #000000;
   --on-primary: #ffffff;
@@ -28,7 +62,7 @@ export function generateWireframeCode(page: Page, documentName = 'Wireframe'): G
   --radius-md: 8px;
   --radius-pill: 50px;
   
-  /* Figma Block Pastels */
+  /* Figma Palette Tokens */
   --block-lime: #dceeb1;
   --block-lilac: #c5b0f4;
   --block-cream: #f4ecd6;
@@ -85,6 +119,22 @@ body {
   white-space: pre-wrap;
 }
 
+.chigma-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chigma-image {
+  overflow: hidden;
+}
+
+.chigma-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 /* Wireframe Components */
 .chigma-btn {
   display: inline-flex;
@@ -131,11 +181,6 @@ body {
   background: #FFFFFF;
 }
 
-.chigma-input-field:focus {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-}
-
 .chigma-card {
   background: #FFFFFF;
   border: 1px solid var(--border);
@@ -144,14 +189,6 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.chigma-card-header-img {
-  width: 100%;
-  height: 80px;
-  background: var(--surface-subtle);
-  border-radius: 4px;
-  margin-bottom: 12px;
 }
 
 .chigma-card-title {
@@ -170,15 +207,6 @@ body {
   font-size: 13px;
   color: #52525B;
   flex: 1;
-}
-
-.chigma-card-footer {
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--accent-blue);
 }
 
 .chigma-navbar {
@@ -213,38 +241,10 @@ body {
   font-weight: 500;
 }
 
-.chigma-nav-links a:hover {
-  color: var(--primary);
-}
-
 .chigma-sidebar {
   background: var(--surface-subtle);
   border: 1px solid var(--border);
   padding: 20px 16px;
-}
-
-.chigma-sidebar-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-
-.chigma-sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  color: #52525b;
-  text-decoration: none;
-  margin-bottom: 4px;
-}
-
-.chigma-sidebar-item.active {
-  background: #E4E4E7;
-  color: var(--primary);
-  font-weight: 600;
 }
 
 .chigma-badge {
@@ -260,54 +260,64 @@ body {
 .chigma-badge-success { background: #DEF7EC; color: #03543F; }
 .chigma-badge-warning { background: #FEF08A; color: #854D0E; }
 .chigma-badge-danger { background: #FDE8E8; color: #9B1C1C; }
-.chigma-badge-info { background: #E1EFFE; color: #1E429F; }
 
-.chigma-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #FFFFFF;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  font-size: 12px;
-}
-
-.chigma-table th {
-  background: var(--surface-subtle);
-  padding: 8px 12px;
-  text-align: left;
-  font-weight: 600;
-  border-bottom: 1px solid var(--border);
-}
-
-.chigma-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.chigma-table tr:nth-child(even) {
-  background: #FAFAFA;
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  .wireframe-canvas {
+    min-width: 100%;
+  }
 }
 `;
 
   // Helper to generate node HTML
   const generateNodeHtml = (node: ChigmaNode): string => {
+    const shadowCss = resolveBoxShadowCss(node.effects);
+    const fillCss = resolveFillCss(node);
+    const radiusCss = resolveBorderRadiusCss(node.cornerRadius);
+
     const styleAttr = `style="left: ${node.x}px; top: ${node.y}px; width: ${node.width}px; height: ${node.height}px; ${
       node.rotation ? `transform: rotate(${node.rotation}deg);` : ''
-    } ${node.opacity !== undefined && node.opacity < 1 ? `opacity: ${node.opacity};` : ''}"`;
+    } ${node.opacity !== undefined && node.opacity < 1 ? `opacity: ${node.opacity};` : ''} ${shadowCss}"`;
 
     switch (node.type) {
+      case 'icon': {
+        const iconDef = getIconByName((node as IconNode).iconName || 'home');
+        const pathContent = iconDef ? iconDef.svgPath : '';
+        return `  <div class="chigma-element chigma-icon" ${styleAttr}>
+    <svg width="${node.width}" height="${node.height}" viewBox="0 0 24 24" fill="none" stroke="${
+          (node as IconNode).color || '#000000'
+        }" stroke-width="${(node as IconNode).strokeWidth || 2}" stroke-linecap="round" stroke-linejoin="round">${pathContent}</svg>
+  </div>`;
+      }
+
+      case 'svg':
+        return `  <div class="chigma-element" ${styleAttr}>
+    <svg width="${node.width}" height="${node.height}" viewBox="0 0 100 100">${(node as SvgNode).svgContent || ''}</svg>
+  </div>`;
+
+      case 'image':
+        return `  <div class="chigma-element chigma-image" ${styleAttr} style="${styleAttr.slice(
+          7,
+          -1
+        )} border-radius: ${radiusCss};">
+    <img src="${(node as ImageNode).src || ''}" alt="${escapeHtml(node.name)}" style="object-fit: ${
+          (node as ImageNode).objectFit || 'cover'
+        };" />
+  </div>`;
+
       case 'rectangle':
-        return `  <div class="chigma-element chigma-rect" ${styleAttr} style="${styleAttr.slice(7, -1)} background: ${
-          node.fill || 'transparent'
-        }; border: ${node.strokeWidth || 0}px ${node.strokeStyle || 'solid'} ${node.stroke || 'none'}; border-radius: ${
-          node.cornerRadius || 0
-        }px;"></div>`;
+        return `  <div class="chigma-element chigma-rect" ${styleAttr} style="${styleAttr.slice(
+          7,
+          -1
+        )} ${fillCss} border: ${node.strokeWidth || 0}px ${node.strokeStyle || 'solid'} ${
+          node.stroke || 'none'
+        }; border-radius: ${radiusCss};"></div>`;
 
       case 'ellipse':
-        return `  <div class="chigma-element chigma-ellipse" ${styleAttr} style="${styleAttr.slice(7, -1)} background: ${
-          node.fill || 'transparent'
-        }; border: ${node.strokeWidth || 0}px ${node.strokeStyle || 'solid'} ${node.stroke || 'none'};"></div>`;
+        return `  <div class="chigma-element chigma-ellipse" ${styleAttr} style="${styleAttr.slice(
+          7,
+          -1
+        )} ${fillCss} border: ${node.strokeWidth || 0}px ${node.strokeStyle || 'solid'} ${node.stroke || 'none'};"></div>`;
 
       case 'text':
         return `  <div class="chigma-element chigma-text" ${styleAttr} style="${styleAttr.slice(7, -1)} font-size: ${
@@ -320,7 +330,7 @@ body {
         return `  <button class="chigma-element chigma-btn chigma-btn-${node.variant || 'primary'}" ${styleAttr} style="${styleAttr.slice(
           7,
           -1
-        )} border-radius: ${node.cornerRadius || 6}px; ${node.fill ? `background: ${node.fill};` : ''} ${
+        )} border-radius: ${radiusCss}; ${fillCss} ${
           node.textColor ? `color: ${node.textColor};` : ''
         }">${escapeHtml(node.label || 'Button')}</button>`;
 
@@ -329,24 +339,18 @@ body {
     ${node.label ? `<label>${escapeHtml(node.label)}</label>` : ''}
     <input type="${node.inputType || 'text'}" class="chigma-input-field" placeholder="${escapeHtml(
           node.placeholder || ''
-        )}" value="${escapeHtml(node.value || '')}" style="border-radius: ${node.cornerRadius || 6}px;" />
+        )}" value="${escapeHtml(node.value || '')}" style="border-radius: ${radiusCss};" />
   </div>`;
 
       case 'card':
-        return `  <div class="chigma-element chigma-card" ${styleAttr} style="${styleAttr.slice(7, -1)} border-radius: ${
-          node.cornerRadius || 8
-        }px;">
-    ${node.hasImage ? '<div class="chigma-card-header-img"></div>' : ''}
+        return `  <div class="chigma-element chigma-card" ${styleAttr} style="${styleAttr.slice(7, -1)} border-radius: ${radiusCss};">
     <div class="chigma-card-title">${escapeHtml(node.title || 'Card Title')}</div>
     ${node.subtitle ? `<div class="chigma-card-subtitle">${escapeHtml(node.subtitle)}</div>` : ''}
     <div class="chigma-card-content">${escapeHtml(node.content || '')}</div>
-    ${node.showFooter ? `<div class="chigma-card-footer">${escapeHtml(node.footerText || 'Read more →')}</div>` : ''}
   </div>`;
 
       case 'navbar':
-        return `  <header class="chigma-element chigma-navbar" ${styleAttr} style="${styleAttr.slice(7, -1)} ${
-          node.fill ? `background: ${node.fill};` : ''
-        }">
+        return `  <header class="chigma-element chigma-navbar" ${styleAttr} style="${styleAttr.slice(7, -1)} ${fillCss}">
     <div class="chigma-nav-brand">
       <div style="width: 20px; height: 20px; background: #3B82F6; border-radius: 4px;"></div>
       <span>${escapeHtml(node.brandName || 'Brand')}</span>
@@ -356,55 +360,12 @@ body {
     </ul>
   </header>`;
 
-      case 'sidebar':
-        return `  <aside class="chigma-element chigma-sidebar" ${styleAttr} style="${styleAttr.slice(7, -1)} ${
-          node.fill ? `background: ${node.fill};` : ''
-        }">
-    <div class="chigma-sidebar-title">${escapeHtml(node.title || 'Navigation')}</div>
-    ${(node.items || [])
-      .map(
-        (item) =>
-          `<a href="#" class="chigma-sidebar-item ${item.active ? 'active' : ''}">${escapeHtml(item.label)}</a>`
-      )
-      .join('\n    ')}
-  </aside>`;
-
-      case 'badge':
-        return `  <div class="chigma-element chigma-badge chigma-badge-${node.variant || 'success'}" ${styleAttr} style="${styleAttr.slice(
-          7,
-          -1
-        )} ${node.fill ? `background: ${node.fill};` : ''} ${node.textColor ? `color: ${node.textColor};` : ''}">${escapeHtml(
-          node.label || 'Active'
-        )}</div>`;
-
-      case 'table':
-        return `  <div class="chigma-element" ${styleAttr}>
-    <table class="chigma-table">
-      <thead>
-        <tr>
-          ${(node.headers || []).map((h) => `<th>${escapeHtml(h)}</th>`).join('')}
-        </tr>
-      </thead>
-      <tbody>
-        ${(node.rows || [])
-          .map(
-            (row) => `<tr>
-          ${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}
-        </tr>`
-          )
-          .join('\n        ')}
-      </tbody>
-    </table>
-  </div>`;
-
       case 'group':
       case 'frame':
         const childrenHtml = ((node as GroupNode).children || [])
           .map((child) => generateNodeHtml(child))
           .join('\n');
-        return `  <div class="chigma-element chigma-container" ${styleAttr} style="${styleAttr.slice(7, -1)} ${
-          'fill' in node ? `background: ${node.fill};` : ''
-        } ${'cornerRadius' in node ? `border-radius: ${node.cornerRadius}px;` : ''}">
+        return `  <div class="chigma-element chigma-container" ${styleAttr} style="${styleAttr.slice(7, -1)} ${fillCss} border-radius: ${radiusCss};">
 ${childrenHtml}
   </div>`;
 
@@ -423,7 +384,6 @@ ${htmlBody}
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Chigma wireframe page loaded successfully.');
   
-  // Interactive button click feedback
   document.querySelectorAll('.chigma-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       console.log('Button clicked:', btn.textContent.trim());

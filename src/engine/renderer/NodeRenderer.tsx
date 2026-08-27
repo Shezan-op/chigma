@@ -10,6 +10,8 @@ import {
 } from './ShapeRenderers';
 import { TextRenderer } from './TextRenderer';
 import { ImageRenderer } from './ImageRenderer';
+import { IconRenderer } from './IconRenderer';
+import { SvgRenderer } from './SvgRenderer';
 import {
   BarChartRenderer,
   LineChartRenderer,
@@ -69,6 +71,12 @@ export const NodeRenderer: React.FC<NodeRendererProps> = React.memo(({ node }) =
         return <PolygonRenderer node={node} />;
       case 'pencil':
         return <PencilRenderer node={node} />;
+
+      // Vector Assets & Icons
+      case 'icon':
+        return <IconRenderer node={node as any} />;
+      case 'svg':
+        return <SvgRenderer node={node as any} />;
 
       // Text
       case 'text':

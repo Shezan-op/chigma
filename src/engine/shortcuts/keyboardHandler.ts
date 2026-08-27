@@ -1,5 +1,6 @@
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useEditorStore } from '../../store/useEditorStore';
+import { createComponentMaster } from '../components/componentEngine';
 
 export function setupKeyboardShortcuts(): () => void {
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,11 +34,16 @@ export function setupKeyboardShortcuts(): () => void {
       setCodeExportModalOpen,
       isPrototypeMode,
       setPrototypeMode,
+      isIconPickerOpen,
+      setIconPickerOpen,
+      isDesignSystemModalOpen,
+      setDesignSystemModalOpen,
       lastDuplicateOffset,
       setLastDuplicateOffset
     } = useEditorStore.getState();
 
     const {
+      document: doc,
       undo,
       redo,
       canUndo,
@@ -50,24 +56,41 @@ export function setupKeyboardShortcuts(): () => void {
       cut,
       paste,
       updateNodes,
+      updateDocument,
+      getNodeById,
       getActivePage
     } = useDocumentStore.getState();
 
     // 1. Command Palette: Ctrl+K / Cmd+K
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && !e.altKey) {
       e.preventDefault();
       setCommandPaletteOpen(!isCommandPaletteOpen);
       return;
     }
 
-    // 2. Export Code: Ctrl+Shift+C / Cmd+Shift+C
+    // 2. Convert to Component: Ctrl+Alt+K / Cmd+Alt+K
+    if ((e.ctrlKey || e.metaKey) && e.altKey && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (selectedIds.length > 0) {
+        const node = getNodeById(selectedIds[0]);
+        if (node) {
+          const { master, updatedNode } = createComponentMaster(node);
+          const currentComponents = doc.components || [];
+          updateDocument({ components: [...currentComponents, master] });
+          updateNodes([{ id: node.id, props: updatedNode }]);
+        }
+      }
+      return;
+    }
+
+    // 3. Export Code: Ctrl+Shift+C / Cmd+Shift+C
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
       e.preventDefault();
       setCodeExportModalOpen(!isCodeExportModalOpen);
       return;
     }
 
-    // 3. Prototyping Mode: Ctrl+Alt+Enter or F5
+    // 4. Prototyping Mode: Ctrl+Alt+Enter or F5
     if (((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'Enter') || e.key === 'F5') {
       e.preventDefault();
       setPrototypeMode(!isPrototypeMode);
@@ -76,7 +99,21 @@ export function setupKeyboardShortcuts(): () => void {
 
     if (isEditingText) return;
 
-    // 4. Arrow Key Nudge (1px normal, 8px with Shift)
+    // 5. Open Design System Panel: Shift+D
+    if (e.shiftKey && e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      setDesignSystemModalOpen(!isDesignSystemModalOpen);
+      return;
+    }
+
+    // 6. Open Vector Icon Library: Shift+I
+    if (e.shiftKey && e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      setIconPickerOpen(!isIconPickerOpen);
+      return;
+    }
+
+    // 7. Arrow Key Nudge (1px normal, 8px with Shift)
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && selectedIds.length > 0) {
       e.preventDefault();
       const step = e.shiftKey ? 8 : 1;
@@ -101,7 +138,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 5. Undo / Redo
+    // 8. Undo / Redo
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       if (e.shiftKey) {
@@ -118,7 +155,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 6. Clipboard Operations
+    // 9. Clipboard Operations
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
       e.preventDefault();
       if (selectedIds.length > 0) copy(selectedIds);
@@ -152,7 +189,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 7. Grouping & Ungrouping
+    // 10. Grouping & Ungrouping
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
       e.preventDefault();
       if (e.shiftKey) {
@@ -171,7 +208,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 8. Select All
+    // 11. Select All
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
       e.preventDefault();
       const page = getActivePage();
@@ -181,7 +218,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 9. Delete
+    // 12. Delete
     if (e.key === 'Delete' || e.key === 'Backspace') {
       if (selectedIds.length > 0) {
         e.preventDefault();
@@ -191,14 +228,14 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 10. Escape -> Deselect
+    // 13. Escape -> Deselect
     if (e.key === 'Escape') {
       deselectAll();
       setActiveTool('select');
       return;
     }
 
-    // 11. Zoom Shortcuts
+    // 14. Zoom Shortcuts
     if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
       e.preventDefault();
       zoomIn();
@@ -217,7 +254,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 12. Toggle Grid & Rulers
+    // 15. Toggle Grid & Rulers
     if ((e.ctrlKey || e.metaKey) && (e.key === "'" || e.key === '"')) {
       e.preventDefault();
       setShowGrid(!showGrid);
@@ -230,8 +267,8 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 13. Tool Switch Shortcuts (Single Key)
-    if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+    // 16. Tool Switch Shortcuts (Single Key)
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
       switch (e.key.toLowerCase()) {
         case 'v':
           setActiveTool('select');

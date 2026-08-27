@@ -19,7 +19,11 @@ import {
   Code,
   Search,
   Sliders,
-  Play
+  Play,
+  Smile,
+  Palette,
+  ShieldCheck,
+  Smartphone
 } from 'lucide-react';
 
 interface TopToolbarProps {
@@ -50,7 +54,11 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
     selectedIds,
     setCommandPaletteOpen,
     setCodeExportModalOpen,
-    setPrototypeMode
+    setPrototypeMode,
+    setIconPickerOpen,
+    setDesignSystemModalOpen,
+    setAccessibilityModalOpen,
+    setResponsivePreviewOpen
   } = useEditorStore();
 
   const { setExportModalOpen, setImportModalOpen, setShortcutsModalOpen } = useProjectStore();
@@ -112,7 +120,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
         )}
       </div>
 
-      {/* Center: Command Palette, Undo/Redo & Alignment Tools */}
+      {/* Center: Command Palette, Undo/Redo, Design Tools & Alignment */}
       <div className="toolbar-section center">
         {/* Quick Actions Search Pill */}
         <button
@@ -124,6 +132,38 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
           <span>Quick Actions</span>
           <kbd>Ctrl+K</kbd>
         </button>
+
+        {/* Quick Tool Launchers: Icons, Tokens, A11y, Responsive */}
+        <div className="toolbar-btn-group">
+          <button
+            className="btn-icon"
+            onClick={() => setIconPickerOpen(true)}
+            title="Vector Icon Library"
+          >
+            <Smile size={15} />
+          </button>
+          <button
+            className="btn-icon"
+            onClick={() => setDesignSystemModalOpen(true)}
+            title="Design Tokens & Palette (Light/Dark)"
+          >
+            <Palette size={15} />
+          </button>
+          <button
+            className="btn-icon"
+            onClick={() => setAccessibilityModalOpen(true)}
+            title="Accessibility & Contrast Inspector"
+          >
+            <ShieldCheck size={15} />
+          </button>
+          <button
+            className="btn-icon"
+            onClick={() => setResponsivePreviewOpen(true)}
+            title="Responsive Breakpoint Preview"
+          >
+            <Smartphone size={15} />
+          </button>
+        </div>
 
         {/* Undo / Redo */}
         <div className="toolbar-btn-group">

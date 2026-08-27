@@ -37,6 +37,23 @@ Chigma balances **technical precision** (pixel-sharp rulers, crisp 1px borders, 
 | `--chigma-block-navy` | Navy | `#1F1D3D` | Deep high-contrast dark block |
 | `--chigma-accent-magenta`| Magenta | `#FF3D8B` | Guide lines & alignment snaps |
 
+### Multi-Mode Variables (Light & Dark)
+Variables support scoped evaluations across Light and Dark themes. When exporting CSS, Chigma generates:
+```css
+:root {
+  --color-primary: #000000;
+  --color-surface: #FFFFFF;
+  --color-accent: #0066FF;
+  --spacing-md: 16px;
+}
+
+[data-theme="dark"] {
+  --color-primary: #FFFFFF;
+  --color-surface: #18181B;
+  --color-accent: #3B82F6;
+}
+```
+
 ---
 
 ## 3. Typography Hierarchy
@@ -61,6 +78,11 @@ Chigma balances **technical precision** (pixel-sharp rulers, crisp 1px borders, 
 - `pill`: `50px` — Primary & secondary CTA buttons, command search bar
 - `full`: `9999px` — Circular avatars, toggle switches
 
+### Independent 4-Corner Radii
+Each corner of a rectangle, frame, card, or button can be individually customized:
+- `topLeft`, `topRight`, `bottomRight`, `bottomLeft`
+- Evaluates to SVG arc bezier paths (`M... A rx ry...`) and standard CSS `border-radius: tl tr br bl`.
+
 ### Spacing Scale
 - `2px` / `4px` (`xxs`): Button padding, icon gaps
 - `8px` (`xs`): Grid step, field spacing
@@ -69,16 +91,24 @@ Chigma balances **technical precision** (pixel-sharp rulers, crisp 1px borders, 
 
 ---
 
-## 5. UI Component Anatomy
+## 5. Master Components & Instances (❖ / ◇)
 
-1. **Top Toolbar**:
-   - Left: Black brand square badge, project title with double-click rename.
-   - Center: Command Palette search pill (`Ctrl+K`), transactional Undo/Redo group, dynamic Alignment group.
-   - Right: Grid/Rulers toggles, Zoom controls, **Export Code** pill CTA, Export/Import actions.
-2. **Left Sidebar**:
-   - 44px Tool Strip (V, H, F, R, E, L, A, T, P) with active state inverting to `#000000`.
-   - Toggle tabs for **Layers** (tree with eye/lock toggles) and **Components** (searchable 1-click insertion drawer).
-3. **Properties Inspector**:
-   - Modular collapsible sections: Layout & Coordinates, Fill & Stroke (with Figma pastel palette), Typography, Charts, and Component attributes.
-4. **Starter Templates**:
-   - Saturated pastel container blocks for SaaS Landing Pages, Mobile Apps, and Analytics Dashboards.
+- **Main Component (`❖`)**: Purple identifier token (`#7C3AED`), automatically propogates design changes to all linked instances across project pages.
+- **Instance (`◇`)**: Emerald identifier token (`#059669`), tracks local overrides (text copy, fills, dimensions) with 1-click **Go to Main**, **Swap Component**, and **Detach Instance** (`Unlink`).
+
+---
+
+## 6. Vector Icon System
+
+- Standardized on a **24×24px** base coordinate grid.
+- Clean 2px stroke weight with rounded caps and joins (`stroke-linecap="round" stroke-linejoin="round"`).
+- Categorized into 12 semantic groups with visual search picker (`I` / `Shift+I`).
+
+---
+
+## 7. Responsive Constraints System
+
+- **Horizontal**: `left`, `center`, `right`, `left_right` (Fill), `scale`.
+- **Vertical**: `top`, `center`, `bottom`, `top_bottom` (Fill), `scale`.
+- **Sizing Modes**: `Fixed`, `Hug Contents`, `Fill Container`.
+- **Preview**: Live multi-device breakpoint simulation (Mobile 390px, Tablet 768px, Laptop 1280px, Desktop 1440px).

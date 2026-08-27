@@ -7,16 +7,17 @@ This document details the engineering architecture, data structures, rendering p
 ## 1. Architectural Principles
 
 1. **100% Offline-First**: Zero reliance on external servers, APIs, databases, authentication, or CDNs. Everything executes locally in the browser runtime.
-2. **Deterministic Vector Canvas**: All graphical elements (shapes, typography, wireframes, charts, containers) are represented as clean SVG vector primitives in a virtual 2D coordinate space.
-3. **Figma-Style Auto-Layout & Spacing Math**: Container frames calculate child bounding boxes, gaps, and cross-axis alignment deterministically.
-4. **Interactive Prototyping State Graph**: Interactive nodes link to target pages and render within responsive device frames with click hotspots.
-5. **Progressive Web App (PWA) Offline Engine**: Service Worker caching and standalone manifest for desktop and mobile installations.
-6. **Transactional State & Command Pattern**: State mutations are encapsulated in reversible commands for lossless Undo/Redo.
-7. **Frictionless 60fps Interaction**: Pointer event tracking is decoupled from heavy React reconciliations via `requestAnimationFrame` batching during drag, resize, rotate, and marquee operations.
+2. **Deterministic Vector Canvas**: All graphical elements (shapes, typography, wireframes, charts, containers, vector icons) are represented as clean SVG vector primitives in a virtual 2D coordinate space.
+3. **Master Component & Instance Hierarchy**: Master components (`❖`) act as single sources of truth. Instances (`◇`) inherit geometry, fills, typography, and effects while maintaining non-destructive overrides.
+4. **Design Tokens & Variable Resolver**: Multi-mode token collections (Light/Dark mode) driving dynamic color palettes, typography scales, and spacing units with 1-click CSS Custom Property export (`:root { --token: ... }`).
+5. **Responsive Constraints & Resizing Math**: Container frames calculate child bounding boxes, gaps, and responsive anchor deltas (`left`, `center`, `right`, `left_right`, `scale`, `top`, `bottom`, `top_bottom`) deterministically across device breakpoints.
+6. **Built-in Quality Inspection**: WCAG 2.1 AA/AAA compliance audit engine computing touch target sizes and color contrast ratios directly in memory.
+7. **Transactional State & Command Pattern**: State mutations are encapsulated in reversible commands for lossless Undo/Redo (`Ctrl+Z`, `Ctrl+Y`).
+8. **Frictionless 60fps Interaction**: Pointer event tracking is decoupled from heavy React reconciliations via `requestAnimationFrame` batching during drag, resize, rotate, and marquee operations.
 
 ---
 
-## 2. System Overview Diagram
+## 2. System Architecture Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -24,18 +25,21 @@ This document details the engineering architecture, data structures, rendering p
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │                            TOP TOOLBAR                                │  │
-│  │  [Project Title] [Quick Actions] [Undo/Redo] [Present] [Export Code]  │  │
+│  │  [Project Title] [Quick Tools] [Undo/Redo] [Icons] [Tokens] [Audit]   │  │
+│  │  [Responsive Preview] [Present] [Export Code]                         │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
 │  ┌──────────────┬──────────────────────────────────────────┬─────────────┐  │
 │  │ LEFT SIDEBAR │              SVG 2D CANVAS               │ PROPERTIES  │  │
 │  │              │                                          │             │  │
 │  │ • Toolstrip  │  • Infinite Viewport (Pan / Zoom)        │ • Geometry  │  │
-│  │ • Layer Tree │  • 8-Point Transform Overlay             │ • AutoLayout│  │
-│  │ • Component  │  • Smart Snapping & Alt Distance Guides  │ • Spacing   │  │
-│  │   & Section  │  • Marquee Drag-to-Select Overlay        │ • Prototyping│
-│  │   Library    │  • Interactive Double-Click Text Overlay │ • Fill/     │  │
-│  │ • Pages Bar  │  • Pixel Coordinate Rulers               │   Stroke    │  │
+│  │ • Layer Tree │  • Dynamic SvgDefs (Gradients & Filters) │ • AutoLayout│  │
+│  │ • Master     │  • 8-Point Transform Overlay             │ • Radii     │  │
+│  │   Components │  • Smart Snapping & Alt Distance Guides  │ • Fills     │  │
+│  │ • Icon Picker│  • Marquee Drag-to-Select Overlay        │ • Strokes   │  │
+│  │ • Section    │  • Interactive Double-Click Text Overlay │ • Effects   │  │
+│  │   Library    │  • Pixel Coordinate Rulers               │ • Component │  │
+│  │ • Pages Bar  │  • Drag & Drop Asset Importer            │ • Constraint│  │
 │  └──────────────┴──────────────────────────────────────────┴─────────────┘  │
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
@@ -50,16 +54,18 @@ This document details the engineering architecture, data structures, rendering p
 │                                                                             │
 │  ┌───────────────────────┐ ┌──────────────────────┐ ┌────────────────────┐  │
 │  │   useDocumentStore    │ │    useEditorStore    │ │   useProjectStore  │  │
-│  │  (Document Tree,      │ │   (Viewport, Tools,  │ │  (Project CRUD,    │  │
-│  │   AutoLayout, Stacks, │ │    Alt Distance,     │ │   Modal Dialogs,   │  │
-│  │   Interaction Links)  │ │    Prototype Player) │ │   Templates)       │  │
+│  │  • Document Tree (v2) │ │   • Viewport Pan/Zoom│ │  • Project CRUD    │  │
+│  │  • Master Components  │ │   • Tool State       │ │  • Dexie DB Bridge │  │
+│  │  • VariableCollection │ │   • Alt Distance     │ │  • Starter         │  │
+│  │  • Reusable Styles    │ │   • Modal Triggers   │ │    Templates       │  │
+│  │  • Command History    │ │   • Prototype Player │ │  • Confirm Modals  │  │
 │  └───────────┬───────────┘ └──────────────────────┘ └──────────┬─────────┘  │
 │              │                                                 │            │
 │              ▼                                                 ▼            │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │                    IndexedDB via Dexie (ChigmaDB)                     │  │
-│  │        • projects (Documents, Pages, Nodes, Timestamps)               │  │
-│  │        • preferences (Grid, Rulers, Snap, Last Opened)                │  │
+│  │        • projects (Documents v2, Pages, Nodes, Components)            │  │
+│  │        • preferences (Grid, Rulers, Snap, Theme, Last Opened)         │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -68,74 +74,74 @@ This document details the engineering architecture, data structures, rendering p
 
 ## 3. Data Models (`src/models/`)
 
-### Document Schema
+### Document Schema (Version 2)
 ```typescript
-interface ChigmaDocument {
+export interface ChigmaDocument {
   id: string;
   name: string;
+  schemaVersion: number; // v2
   version: number;
   createdAt: number;
   updatedAt: number;
   pages: Page[];
+  components?: ComponentMaster[];
+  styles?: ReusableStyle[];
+  variableCollections?: VariableCollection[];
+  activeModeId?: string; // 'light' | 'dark'
 }
 
-interface Page {
+export interface ComponentMaster {
   id: string;
   name: string;
-  children: ChigmaNode[];
-  background?: string;
-}
-```
-
-### Auto-Layout & Prototyping Types
-```typescript
-export interface AutoLayoutConfig {
-  enabled: boolean;
-  direction: 'horizontal' | 'vertical';
-  gap: number;
-  paddingX: number;
-  paddingY: number;
-  alignItems: 'start' | 'center' | 'end' | 'stretch';
-  justifyContent: 'start' | 'center' | 'end' | 'space-between';
+  mainNodeId: string;
+  description?: string;
+  variants?: Record<string, string>;
+  createdAt: number;
+  updatedAt: number;
 }
 
-export interface InteractionLink {
-  trigger: 'click' | 'hover';
-  action: 'navigate' | 'openModal' | 'back' | 'url';
-  targetPageId?: string;
-  targetUrl?: string;
+export interface DesignVariable {
+  id: string;
+  name: string;
+  type: 'color' | 'number' | 'string' | 'boolean';
+  value: string | number;
+  valuesByMode?: Record<string, string | number>;
 }
 ```
 
 ---
 
-## 4. Auto-Layout & Spacing Math (`src/engine/layout/autoLayout.ts`)
+## 4. Master Component & Instance Engine (`src/engine/components/`)
 
-- **Flow Calculation**: When a Frame has `autoLayout.enabled = true`, children are ordered along the main axis with defined `gap` and `padding`:
-  $$\text{child}_i.\text{offset} = \text{padding} + \sum_{k=0}^{i-1} (\text{child}_k.\text{size} + \text{gap})$$
-- **Cross-Axis Alignment**: Adjusts child positioning perpendicular to flow (`start`, `center`, `end`).
-- **Stack Packing**: Calculates delta offsets for arbitrary multi-selections, instantly aligning elements into clean rows or columns.
-
----
-
-## 5. Smart Distance Measurement Engine (`src/components/editor/DistanceMeasurementOverlay.tsx`)
-
-When the user holds **`Alt`** / **`Option`**, the vector distance calculation computes:
-- $\text{gap}_x = \text{target.left} - \text{selected.right}$ (when selected is left of target)
-- $\text{gap}_y = \text{target.top} - \text{selected.bottom}$ (when selected is above target)
-- Renders non-scaling SVG lines and high-contrast measurement pill badges directly on the canvas.
+- **Creation**: `createComponentMaster(node)` wraps a target node, generates a unique component master record, and stamps the node with `isComponent: true`.
+- **Instantiation**: `createInstanceFromMaster(master, masterNode, x, y)` clones geometry and styling while maintaining the link via `instanceOf: master.id`.
+- **Overrides**: Node updates on an instance store diffs in `node.overrides`. When the master updates, `syncInstanceWithMaster(instance, masterNode)` reapplies master updates while strictly preserving instance overrides.
+- **Detaching**: `detachInstance(instance)` unlinks the instance, converting it to an independent native node.
 
 ---
 
-## 6. Prototyping Player (`src/components/prototype/PrototypePlayerModal.tsx`)
+## 5. Responsive Constraints & Resizing Engine (`src/engine/layout/responsiveEngine.ts`)
 
-- Provides fullscreen simulation of wireframe flows.
-- Traverses `node.interaction.targetPageId` on click to trigger animated transitions.
-- Supports 4 device preview frames: **Desktop (1280x800)**, **iPad Air (820x1180)**, **iPhone 15 Pro (393x852)**, and **Fullscreen (100%)**.
+- **Constraint Anchor Deltas**: When a parent frame resizes from $(W_0, H_0)$ to $(W_1, H_1)$ with $\Delta W = W_1 - W_0$ and $\Delta H = H_1 - H_0$:
+  - `left`: $X_1 = X_0$, $W_1 = W_0$
+  - `right`: $X_1 = X_0 + \Delta W$, $W_1 = W_0$
+  - `center`: $X_1 = X_0 + \frac{\Delta W}{2}$, $W_1 = W_0$
+  - `left_right` (Fill): $X_1 = X_0$, $W_1 = W_0 + \Delta W$
+  - `scale`: $X_1 = \frac{X_0}{W_0} \cdot W_1$, $W_1 = \frac{W_0}{W_0} \cdot W_1$
+- **Min/Max Sizing**: Enforces `minWidth`, `maxWidth`, `minHeight`, `maxHeight` boundaries during resizing.
 
 ---
 
-## 7. Progressive Web App (PWA) Offline Architecture
+## 6. Accessibility & Contrast Inspector (`src/engine/quality/accessibilityChecker.ts`)
 
-- `public/manifest.webmanifest`: Configures standalone app launching on mobile (iOS/Android) and desktop (Chrome/Edge/Safari).
-- `public/sw.js`: Service worker implementing cache-first fetching with offline fallback.
+- **Luminance & Contrast**: Implements the WCAG 2.1 relative luminance formula:
+  $$L = 0.2126 R + 0.7152 G + 0.0722 B$$
+  $$\text{Contrast Ratio} = \frac{L_1 + 0.05}{L_2 + 0.05}$$
+- **Touch Target Validation**: Scans interactive nodes (`button`, `input`, `dropdown`, `toggle`) for physical dimensions below $44 \times 44\text{px}$.
+
+---
+
+## 7. Vector Icon Library & Custom Asset Importer
+
+- **Built-in Registry (`src/engine/icons/iconRegistry.ts`)**: 50+ optimized SVG icons categorized into Navigation, Actions, Communication, Media, Commerce, Files, Users, Settings, Status, Arrows, Editor, and Social.
+- **Drag & Drop Importer (`src/engine/assets/assetImporter.ts`)**: Ingests external `.svg` files (sanitizing and extracting `viewBox`/paths) and bitmap images (`.png`, `.jpg`, `.webp`) as base64 data URLs.

@@ -29,6 +29,7 @@ export interface DocumentState {
 
   // Document actions
   setDocument: (doc: ChigmaDocument) => void;
+  updateDocument: (partial: Partial<ChigmaDocument>) => void;
   renameDocument: (name: string) => void;
   setActivePageId: (pageId: string) => void;
   addPage: (name?: string) => string;
@@ -98,6 +99,17 @@ export const useDocumentStore = create<DocumentState>((set, get) => {
         isDirty: false,
         historyVersion: 0
       });
+    },
+
+    updateDocument: (partial) => {
+      set((state) => ({
+        document: {
+          ...state.document,
+          ...partial,
+          updatedAt: Date.now()
+        },
+        isDirty: true
+      }));
     },
 
     renameDocument: (name) => {

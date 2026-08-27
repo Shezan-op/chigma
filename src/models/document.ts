@@ -1,4 +1,45 @@
-import type { ChigmaNode, NodeType } from './node';
+import type { ChigmaNode, NodeType, IconNode, SvgNode } from './node';
+
+export interface DesignVariable {
+  id: string;
+  name: string; // e.g. "colors/primary" or "spacing/md"
+  type: 'color' | 'number' | 'string' | 'boolean';
+  value: any;
+  valuesByMode?: Record<string, any>; // e.g. { light: '#000000', dark: '#FFFFFF' }
+  description?: string;
+}
+
+export interface VariableCollection {
+  id: string;
+  name: string;
+  modes: { id: string; name: string }[];
+  defaultModeId: string;
+  variables: DesignVariable[];
+}
+
+export interface ReusableStyle {
+  id: string;
+  name: string; // e.g. "Heading / H1", "Card / Elevated Shadow"
+  type: 'text' | 'fill' | 'stroke' | 'effect';
+  style: Record<string, any>;
+}
+
+export interface ComponentMaster {
+  id: string;
+  name: string;
+  description?: string;
+  mainNodeId: string;
+  properties?: {
+    name: string;
+    type: 'text' | 'boolean' | 'instance-swap' | 'variant' | 'color';
+    defaultValue: any;
+  }[];
+  variants?: {
+    id: string;
+    name: string;
+    properties: Record<string, string>;
+  }[];
+}
 
 export interface Page {
   id: string;
@@ -11,9 +52,15 @@ export interface ChigmaDocument {
   id: string;
   name: string;
   version: number;
+  schemaVersion?: number;
   createdAt: number;
   updatedAt: number;
   pages: Page[];
+  variableCollections?: VariableCollection[];
+  activeModeId?: string; // e.g. 'light' | 'dark'
+  styles?: ReusableStyle[];
+  components?: ComponentMaster[];
+  breakpoints?: { id: string; name: string; width: number }[];
 }
 
 export interface ProjectMetadata {
@@ -35,16 +82,158 @@ export function createDefaultPage(name = 'Page 1'): Page {
   };
 }
 
+export const DEFAULT_VARIABLE_COLLECTIONS: VariableCollection[] = [
+  {
+    id: 'col_brand',
+    name: 'Brand & Colors',
+    modes: [
+      { id: 'light', name: 'Light Mode' },
+      { id: 'dark', name: 'Dark Mode' }
+    ],
+    defaultModeId: 'light',
+    variables: [
+      {
+        id: 'var_color_primary',
+        name: 'color/primary',
+        type: 'color',
+        value: '#000000',
+        valuesByMode: { light: '#000000', dark: '#FFFFFF' }
+      },
+      {
+        id: 'var_color_surface',
+        name: 'color/surface',
+        type: 'color',
+        value: '#FFFFFF',
+        valuesByMode: { light: '#FFFFFF', dark: '#18181B' }
+      },
+      {
+        id: 'var_color_accent',
+        name: 'color/accent',
+        type: 'color',
+        value: '#0066FF',
+        valuesByMode: { light: '#0066FF', dark: '#3B82F6' }
+      },
+      {
+        id: 'var_color_block_lime',
+        name: 'color/block-lime',
+        type: 'color',
+        value: '#DCEEB1',
+        valuesByMode: { light: '#DCEEB1', dark: '#3A4428' }
+      },
+      {
+        id: 'var_color_block_lilac',
+        name: 'color/block-lilac',
+        type: 'color',
+        value: '#C5B0F4',
+        valuesByMode: { light: '#C5B0F4', dark: '#372E54' }
+      }
+    ]
+  },
+  {
+    id: 'col_spacing',
+    name: 'Spacing System',
+    modes: [{ id: 'default', name: 'Default' }],
+    defaultModeId: 'default',
+    variables: [
+      { id: 'var_space_xxs', name: 'spacing/xxs', type: 'number', value: 4 },
+      { id: 'var_space_xs', name: 'spacing/xs', type: 'number', value: 8 },
+      { id: 'var_space_sm', name: 'spacing/sm', type: 'number', value: 12 },
+      { id: 'var_space_md', name: 'spacing/md', type: 'number', value: 16 },
+      { id: 'var_space_lg', name: 'spacing/lg', type: 'number', value: 24 },
+      { id: 'var_space_xl', name: 'spacing/xl', type: 'number', value: 32 },
+      { id: 'var_space_xxl', name: 'spacing/xxl', type: 'number', value: 48 }
+    ]
+  }
+];
+
+export const DEFAULT_STYLES: ReusableStyle[] = [
+  {
+    id: 'style_h1',
+    name: 'Typography / Display H1',
+    type: 'text',
+    style: { fontSize: 32, fontWeight: 700, lineHeight: 1.2 }
+  },
+  {
+    id: 'style_h2',
+    name: 'Typography / Headline H2',
+    type: 'text',
+    style: { fontSize: 24, fontWeight: 600, lineHeight: 1.25 }
+  },
+  {
+    id: 'style_body',
+    name: 'Typography / Body Regular',
+    type: 'text',
+    style: { fontSize: 14, fontWeight: 400, lineHeight: 1.45 }
+  },
+  {
+    id: 'style_shadow_card',
+    name: 'Effects / Card Elevation',
+    type: 'effect',
+    style: {
+      effects: [
+        { id: 'eff_1', type: 'drop-shadow', visible: true, x: 0, y: 4, blur: 12, spread: 0, color: '#000000', opacity: 0.08 }
+      ]
+    }
+  }
+];
+
 export function createDefaultDocument(name = 'Untitled Design'): ChigmaDocument {
   const now = Date.now();
   return {
     id: `doc_${now}_${Math.random().toString(36).slice(2, 7)}`,
     name,
-    version: 1,
+    version: 2,
+    schemaVersion: 2,
     createdAt: now,
     updatedAt: now,
-    pages: [createDefaultPage('Page 1')]
+    pages: [createDefaultPage('Page 1')],
+    variableCollections: DEFAULT_VARIABLE_COLLECTIONS,
+    activeModeId: 'light',
+    styles: DEFAULT_STYLES,
+    components: [],
+    breakpoints: [
+      { id: 'bp_mobile', name: 'Mobile', width: 390 },
+      { id: 'bp_tablet', name: 'Tablet', width: 768 },
+      { id: 'bp_desktop', name: 'Desktop', width: 1280 }
+    ]
   };
+}
+
+/**
+ * Migration helper to ensure older .chigma.json documents (schemaVersion 1)
+ * are cleanly upgraded to schemaVersion 2 without loss of any data.
+ */
+export function migrateDocument(doc: any): ChigmaDocument {
+  if (!doc) return createDefaultDocument();
+
+  const migrated: ChigmaDocument = {
+    ...doc,
+    schemaVersion: 2,
+    pages: (doc.pages || []).map((page: any) => ({
+      ...page,
+      children: (page.children || []).map((child: any) => {
+        // Upgrade legacy flat cornerRadius if needed
+        return {
+          ...child,
+          rotation: child.rotation ?? 0,
+          opacity: child.opacity ?? 1,
+          visible: child.visible ?? true,
+          locked: child.locked ?? false
+        };
+      })
+    })),
+    variableCollections: doc.variableCollections || DEFAULT_VARIABLE_COLLECTIONS,
+    activeModeId: doc.activeModeId || 'light',
+    styles: doc.styles || DEFAULT_STYLES,
+    components: doc.components || [],
+    breakpoints: doc.breakpoints || [
+      { id: 'bp_mobile', name: 'Mobile', width: 390 },
+      { id: 'bp_tablet', name: 'Tablet', width: 768 },
+      { id: 'bp_desktop', name: 'Desktop', width: 1280 }
+    ]
+  };
+
+  return migrated;
 }
 
 export function createDefaultNode(type: NodeType, x = 100, y = 100, customProps: Record<string, any> = {}): ChigmaNode {
@@ -60,6 +249,30 @@ export function createDefaultNode(type: NodeType, x = 100, y = 100, customProps:
   };
 
   switch (type) {
+    case 'icon':
+      return {
+        ...base,
+        type: 'icon',
+        name: 'Icon',
+        width: 24,
+        height: 24,
+        iconName: 'home',
+        color: '#000000',
+        strokeWidth: 2,
+        ...customProps
+      } as IconNode;
+
+    case 'svg':
+      return {
+        ...base,
+        type: 'svg',
+        name: 'SVG Asset',
+        width: 120,
+        height: 120,
+        svgContent: '<circle cx="60" cy="60" r="50" fill="#0066FF"/>',
+        ...customProps
+      } as SvgNode;
+
     case 'rectangle':
       return {
         ...base,

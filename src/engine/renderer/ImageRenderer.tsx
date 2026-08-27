@@ -10,7 +10,11 @@ export const ImageRenderer: React.FC<{ node: ImageNode }> = React.memo(({ node }
     preserveAspectRatio = 'none';
   }
 
-  const hasRadius = (node.cornerRadius || 0) > 0;
+  const rx = typeof node.cornerRadius === 'object' && node.cornerRadius !== null
+    ? node.cornerRadius.topLeft || 0
+    : node.cornerRadius || 0;
+
+  const hasRadius = rx > 0;
 
   return (
     <>
@@ -22,8 +26,8 @@ export const ImageRenderer: React.FC<{ node: ImageNode }> = React.memo(({ node }
               y={0}
               width={node.width}
               height={node.height}
-              rx={node.cornerRadius}
-              ry={node.cornerRadius}
+              rx={rx}
+              ry={rx}
             />
           </clipPath>
         </defs>
@@ -48,7 +52,7 @@ export const ImageRenderer: React.FC<{ node: ImageNode }> = React.memo(({ node }
             fill="#F4F4F5"
             stroke="#D4D4D8"
             strokeWidth={1}
-            rx={node.cornerRadius || 0}
+            rx={rx}
           />
           <line x1={0} y1={0} x2={node.width} y2={node.height} stroke="#E4E4E7" strokeWidth={1} />
           <line x1={node.width} y1={0} x2={0} y2={node.height} stroke="#E4E4E7" strokeWidth={1} />

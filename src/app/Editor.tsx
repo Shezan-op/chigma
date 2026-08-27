@@ -11,8 +11,13 @@ import { ConfirmModal } from '../components/dialogs/ConfirmModal';
 import { CodeExportModal } from '../components/dialogs/CodeExportModal';
 import { CommandPaletteModal } from '../components/dialogs/CommandPaletteModal';
 import { PrototypePlayerModal } from '../components/prototype/PrototypePlayerModal';
+import { IconPickerModal } from '../components/dialogs/IconPickerModal';
+import { DesignSystemModal } from '../components/dialogs/DesignSystemModal';
+import { AccessibilityAuditModal } from '../components/dialogs/AccessibilityAuditModal';
+import { ResponsivePreviewModal } from '../components/prototype/ResponsivePreviewModal';
 import { setupKeyboardShortcuts } from '../engine/shortcuts/keyboardHandler';
 import { useAutosave } from '../persistence/autosave';
+import { useEditorStore } from '../store/useEditorStore';
 
 interface EditorProps {
   onBackToProjects: () => void;
@@ -21,6 +26,17 @@ interface EditorProps {
 export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
   // Activate Autosave Hook
   useAutosave();
+
+  const {
+    isIconPickerOpen,
+    setIconPickerOpen,
+    isDesignSystemModalOpen,
+    setDesignSystemModalOpen,
+    isAccessibilityModalOpen,
+    setAccessibilityModalOpen,
+    isResponsivePreviewOpen,
+    setResponsivePreviewOpen
+  } = useEditorStore();
 
   // Setup Global Keyboard Shortcuts Listener
   useEffect(() => {
@@ -58,6 +74,24 @@ export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
       <CodeExportModal />
       <CommandPaletteModal />
       <PrototypePlayerModal />
+
+      {/* 5. Design Engine Modals */}
+      <IconPickerModal
+        isOpen={isIconPickerOpen}
+        onClose={() => setIconPickerOpen(false)}
+      />
+      <DesignSystemModal
+        isOpen={isDesignSystemModalOpen}
+        onClose={() => setDesignSystemModalOpen(false)}
+      />
+      <AccessibilityAuditModal
+        isOpen={isAccessibilityModalOpen}
+        onClose={() => setAccessibilityModalOpen(false)}
+      />
+      <ResponsivePreviewModal
+        isOpen={isResponsivePreviewOpen}
+        onClose={() => setResponsivePreviewOpen(false)}
+      />
     </div>
   );
 };

@@ -4,6 +4,9 @@ import { NodeRenderer } from './NodeRenderer';
 
 export const FrameRenderer: React.FC<{ node: FrameNode }> = React.memo(({ node }) => {
   const clipId = `frame_clip_${node.id}`;
+  const rx = typeof node.cornerRadius === 'object' && node.cornerRadius !== null
+    ? node.cornerRadius.topLeft || 0
+    : node.cornerRadius || 0;
 
   return (
     <g>
@@ -15,8 +18,8 @@ export const FrameRenderer: React.FC<{ node: FrameNode }> = React.memo(({ node }
               y={0}
               width={node.width}
               height={node.height}
-              rx={node.cornerRadius || 0}
-              ry={node.cornerRadius || 0}
+              rx={rx}
+              ry={rx}
             />
           </clipPath>
         </defs>
@@ -28,8 +31,8 @@ export const FrameRenderer: React.FC<{ node: FrameNode }> = React.memo(({ node }
         y={0}
         width={node.width}
         height={node.height}
-        rx={node.cornerRadius || 0}
-        ry={node.cornerRadius || 0}
+        rx={rx}
+        ry={rx}
         fill={node.fill || '#FFFFFF'}
         stroke={node.stroke || '#E4E4E7'}
         strokeWidth={node.strokeWidth || 1}

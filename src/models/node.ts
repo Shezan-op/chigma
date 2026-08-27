@@ -1,4 +1,15 @@
-import type { StrokeStyle, TextAlign, FontWeight, ArrowMarker } from './styles';
+import type {
+  StrokeStyle,
+  StrokeAlign,
+  TextAlign,
+  FontWeight,
+  ArrowMarker,
+  CornerRadii,
+  FillPaint,
+  StrokePaint,
+  Effect,
+  BlendMode
+} from './styles';
 import type { ChartDataItem } from './charts';
 import type {
   ButtonVariant,
@@ -22,8 +33,23 @@ export interface AutoLayoutConfig {
   gap: number;
   paddingX: number;
   paddingY: number;
+  paddingTop?: number;
+  paddingRight?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
   alignItems: 'start' | 'center' | 'end' | 'stretch';
   justifyContent: 'start' | 'center' | 'end' | 'space-between';
+  wrap?: boolean;
+}
+
+export interface ResponsiveConstraints {
+  horizontal: 'left' | 'center' | 'right' | 'scale' | 'left_right';
+  vertical: 'top' | 'center' | 'bottom' | 'scale' | 'top_bottom';
+}
+
+export interface SizingConstraints {
+  horizontal: 'fixed' | 'hug' | 'fill';
+  vertical: 'fixed' | 'hug' | 'fill';
 }
 
 export interface BaseNode {
@@ -37,8 +63,46 @@ export interface BaseNode {
   opacity: number;  // 0 - 1
   visible: boolean;
   locked: boolean;
-  parentId?: string; // If inside a frame or group
+  parentId?: string; // If inside a frame, group, or boolean
   interaction?: InteractionLink; // Prototyping navigation link
+
+  // Visual Styles
+  fill?: string;
+  fills?: FillPaint[];
+  stroke?: string;
+  strokes?: StrokePaint[];
+  strokeWidth?: number;
+  strokeStyle?: StrokeStyle;
+  strokeAlign?: StrokeAlign;
+  cornerRadius?: number | CornerRadii;
+  effects?: Effect[];
+  blendMode?: BlendMode;
+
+  // Responsive & Constraints
+  constraints?: ResponsiveConstraints;
+  sizing?: SizingConstraints;
+  minWidth?: number;
+  maxWidth?: number;
+  minHeight?: number;
+  maxHeight?: number;
+
+  // Component & Instance Architecture
+  isComponent?: boolean;
+  componentId?: string; // Component definition ID
+  instanceOf?: string; // Source component ID for instances
+  overrides?: Record<string, any>; // Instance property overrides
+  variantProperties?: Record<string, string>; // e.g. { size: 'lg', state: 'hover' }
+
+  // Vector Masks & Boolean Operations
+  isMask?: boolean;
+  maskMode?: 'alpha' | 'vector';
+  booleanOp?: 'union' | 'subtract' | 'intersect' | 'exclude';
+
+  // Export metadata
+  exportSettings?: {
+    format: 'png' | 'svg' | 'html';
+    scale?: number;
+  };
 }
 
 // 1. Shapes
@@ -48,7 +112,7 @@ export interface RectangleNode extends BaseNode {
   stroke: string;
   strokeWidth: number;
   strokeStyle: StrokeStyle;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
 }
 
 export interface EllipseNode extends BaseNode {
@@ -101,7 +165,15 @@ export interface PencilNode extends BaseNode {
   isClosed?: boolean;
 }
 
-// 2. Text
+// 2. Vector Icons
+export interface IconNode extends BaseNode {
+  type: 'icon';
+  iconName: string;
+  color: string;
+  strokeWidth?: number;
+}
+
+// 3. Text
 export interface TextNode extends BaseNode {
   type: 'text';
   text: string;
@@ -113,18 +185,25 @@ export interface TextNode extends BaseNode {
   lineHeight: number;
   letterSpacing: number;
   autoWidth?: boolean;
+  textStyleId?: string;
 }
 
-// 3. Containers
+// 4. Containers
 export interface FrameNode extends BaseNode {
   type: 'frame';
   fill: string;
   stroke: string;
   strokeWidth: number;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
   clipContent: boolean;
   children?: ChigmaNode[];
   autoLayout?: AutoLayoutConfig;
+  layoutGrid?: {
+    columns: number;
+    gutter: number;
+    margin: number;
+    visible: boolean;
+  };
 }
 
 export interface GroupNode extends BaseNode {
@@ -133,17 +212,24 @@ export interface GroupNode extends BaseNode {
   autoLayout?: AutoLayoutConfig;
 }
 
-// 4. Media
+// 5. Media & Assets
 export interface ImageNode extends BaseNode {
   type: 'image';
-  src: string; // Base64 data URL
-  objectFit: 'contain' | 'cover' | 'fill';
-  cornerRadius: number;
+  src: string; // Base64 data URL or local asset reference
+  objectFit: 'contain' | 'cover' | 'fill' | 'crop';
+  cornerRadius: number | CornerRadii;
   stroke?: string;
   strokeWidth?: number;
+  cropRect?: { x: number; y: number; width: number; height: number };
 }
 
-// 5. Charts
+export interface SvgNode extends BaseNode {
+  type: 'svg';
+  svgContent: string; // Sanitized raw SVG vector markup
+  preserveAspectRatio?: string;
+}
+
+// 6. Charts
 export interface BarChartNode extends BaseNode {
   type: 'bar-chart';
   data: ChartDataItem[];
@@ -182,13 +268,13 @@ export interface DonutChartNode extends BaseNode {
   innerRadiusRatio?: number;
 }
 
-// 6. Wireframe Components
+// 7. Wireframe Components
 export interface ButtonNode extends BaseNode {
   type: 'button';
   label: string;
   variant: ButtonVariant;
   size: ComponentSize;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
   fill?: string;
   textColor?: string;
   icon?: string;
@@ -200,7 +286,7 @@ export interface InputNode extends BaseNode {
   placeholder: string;
   value?: string;
   inputType?: 'text' | 'password' | 'email' | 'number' | 'search';
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
   disabled?: boolean;
 }
 
@@ -210,7 +296,7 @@ export interface TextareaNode extends BaseNode {
   placeholder: string;
   value?: string;
   rows?: number;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
 }
 
 export interface CheckboxNode extends BaseNode {
@@ -238,7 +324,7 @@ export interface DropdownNode extends BaseNode {
   options: string[];
   selectedIndex?: number;
   isOpen?: boolean;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
 }
 
 export interface NavbarNode extends BaseNode {
@@ -267,7 +353,7 @@ export interface CardNode extends BaseNode {
   hasImage?: boolean;
   showFooter?: boolean;
   footerText?: string;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
   fill: string;
   stroke: string;
   strokeWidth: number;
@@ -338,7 +424,7 @@ export interface ModalNode extends BaseNode {
   message: string;
   confirmText: string;
   cancelText: string;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
 }
 
 export interface ToastNode extends BaseNode {
@@ -346,7 +432,7 @@ export interface ToastNode extends BaseNode {
   title: string;
   message: string;
   variant: ToastVariant;
-  cornerRadius: number;
+  cornerRadius: number | CornerRadii;
 }
 
 // Master discriminated union of all node types
@@ -357,10 +443,12 @@ export type ChigmaNode =
   | ArrowNode
   | PolygonNode
   | PencilNode
+  | IconNode
   | TextNode
   | FrameNode
   | GroupNode
   | ImageNode
+  | SvgNode
   | BarChartNode
   | LineChartNode
   | PieChartNode

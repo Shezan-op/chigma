@@ -6,6 +6,60 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.0.0] - 2026-08-27
+
+### ❖ Master Components & Instance Architecture
+- **Master Component Engine (`src/engine/components/componentEngine.ts`)**:
+  - Convert any element or frame to a Master Component (`❖ Main Component`) with `Ctrl+Alt+K` or Properties Panel.
+  - Spawn linked Instances (`◇ Instance`) that inherit geometry, typography, fills, and effects from their master.
+  - Fine-grained property overrides (text, color, dimensions) with automatic override preservation during master updates.
+  - 1-click Component Swapping and Non-destructive Detaching (`Unlink`).
+
+### 🎨 Design Tokens & Variable Collections
+- **Design Tokens & Variable Resolver (`src/engine/variables/variableResolver.ts`)**:
+  - Built-in Design Token Collections: Colors (Primary, Surfaces, Accents, Figma Palette) and Spacing scales (`4px`, `8px`, `16px`, `24px`, `32px`).
+  - Multi-Mode Token Evaluation (Light Mode and Dark Mode).
+  - **Design System Modal (`DesignSystemModal.tsx` / `Shift+D`)**:
+    - Live variable editor, token addition, mode switching, and 1-click **Export CSS Variables (`:root { ... }`)** generation.
+
+### 📐 Advanced Styling & Per-Corner Corner Radii
+- **Independent 4-Corner Radii (`CornerRadiusControl.tsx` & `svgPathUtils.ts`)**:
+  - Configurable `topLeft`, `topRight`, `bottomRight`, and `bottomLeft` values with linked/unlinked mode toggle.
+  - SVG Arc path generation (`generateRoundedRectPath`) and CSS `border-radius` synthesis.
+- **Multiple Stackable Fills & Gradients (`FillsSection.tsx` & `SvgDefsRenderer.tsx`)**:
+  - Solid fills, Linear Gradients, and Radial Gradients with configurable angles and stop offsets/colors.
+  - 12 Blend Modes (`multiply`, `screen`, `overlay`, `darken`, `lighten`, etc.).
+- **Multiple Effects (`EffectsSection.tsx`)**:
+  - Stackable `drop-shadow`, `inner-shadow`, `layer-blur`, and `background-blur` rendering via dynamic SVG `<filter>` definitions.
+- **Stroke Alignment (`StrokesSection.tsx`)**:
+  - Configurable stroke styles (`solid`, `dashed`, `dotted`) and alignment modes (`inside`, `center`, `outside`).
+
+### 📱 Responsive Constraints & Breakpoint Preview
+- **Responsive Constraints Engine (`src/engine/layout/responsiveEngine.ts`)**:
+  - Horizontal constraints: `left`, `center`, `right`, `left_right` (Fill), `scale`.
+  - Vertical constraints: `top`, `center`, `bottom`, `top_bottom` (Fill), `scale`.
+  - Min/Max dimension constraints and Sizing modes (`fixed`, `hug`, `fill`).
+- **Responsive Breakpoint Preview Modal (`ResponsivePreviewModal.tsx`)**:
+  - Instant live rendering across device viewports: **Mobile (iPhone 15)**, **Tablet (iPad Air)**, **Laptop (MacBook)**, **Desktop (1440p)**.
+  - Draggable width slider (`320px` to `1600px`) with real-time responsive constraint recalculation.
+
+### 🔍 Quality & Vector Asset Systems
+- **Built-in 50+ Vector Icon Registry (`iconRegistry.ts` & `IconPickerModal.tsx`)**:
+  - 50+ SVG icons across 12 categories (`navigation`, `actions`, `communication`, `media`, `commerce`, `files`, `users`, `settings`, `status`, `arrows`, `editor`, `social`).
+  - Searchable Icon Picker modal with 1-click canvas insertion (`I` or `Shift+I`).
+- **WCAG 2.1 Accessibility & Contrast Inspector (`accessibilityChecker.ts` & `AccessibilityAuditModal.tsx`)**:
+  - Real-time page audit computing compliance score (0-100%).
+  - Touch target validation (<44×44px mobile warning) and WCAG AA 4.5:1 text contrast calculation.
+  - 1-click "Inspect on Canvas" to jump to offending nodes.
+- **Asset Importer (`assetImporter.ts`)**:
+  - Drag-and-drop file support for external SVGs (parsed to vector nodes) and local images (PNG/JPG/WEBP/GIF).
+- **Smart Spacing Normalizer (`smartSpacing.ts`)**:
+  - 1-click alignment of irregular gaps to 4px/8px/16px/24px/32px design token increments.
+- **Document Migration Engine (Schema v2)**:
+  - Backward-compatible document migrator upgrading legacy files seamlessly.
+
+---
+
 ## [1.2.0] - 2026-08-26
 
 ### 🚀 Added

@@ -88,13 +88,21 @@ export interface EditorState {
   propertiesCollapsed: boolean;
   setPropertiesCollapsed: (collapsed: boolean) => void;
 
-  // Modals, Palettes & Prototype Mode
+  // Modals, Palettes & Tools
   isCommandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
   isCodeExportModalOpen: boolean;
   setCodeExportModalOpen: (open: boolean) => void;
   isPrototypeMode: boolean;
   setPrototypeMode: (open: boolean) => void;
+  isIconPickerOpen: boolean;
+  setIconPickerOpen: (open: boolean) => void;
+  isDesignSystemModalOpen: boolean;
+  setDesignSystemModalOpen: (open: boolean) => void;
+  isAccessibilityModalOpen: boolean;
+  setAccessibilityModalOpen: (open: boolean) => void;
+  isResponsivePreviewOpen: boolean;
+  setResponsivePreviewOpen: (open: boolean) => void;
 
   // Active Drawing Shape preview
   drawingShapeType: NodeType | null;
@@ -239,6 +247,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   isPrototypeMode: false,
   setPrototypeMode: (open) => set({ isPrototypeMode: open }),
+
+  isIconPickerOpen: false,
+  setIconPickerOpen: (open) => set({ isIconPickerOpen: open }),
+
+  isDesignSystemModalOpen: false,
+  setDesignSystemModalOpen: (open) => set({ isDesignSystemModalOpen: open }),
+
+  isAccessibilityModalOpen: false,
+  setAccessibilityModalOpen: (open) => set({ isAccessibilityModalOpen: open }),
+
+  isResponsivePreviewOpen: false,
+  setResponsivePreviewOpen: (open) => set({ isResponsivePreviewOpen: open }),
 
   drawingShapeType: null,
   setDrawingShapeType: (type) => set({ drawingShapeType: type })

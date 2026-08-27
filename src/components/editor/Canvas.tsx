@@ -15,7 +15,7 @@ import { calculateSnapping } from '../../engine/geometry/snapping';
 import { isPointInNode, doesMarqueeIntersectNode } from '../../engine/geometry/bounds';
 import { createDefaultNode } from '../../models/document';
 import type { ChigmaNode, TextNode, PencilPoint, PencilNode } from '../../models/node';
-import { readFileAsDataURL } from '../../utils/file';
+import { importAssetFile } from '../../engine/assets/assetImporter';
 
 export const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -644,7 +644,7 @@ export const Canvas: React.FC = () => {
     }
   }, [viewport.zoom, zoomAroundPoint, pan]);
 
-  // Drag & Drop Image Files from OS
+  // Drag & Drop Asset Files (Images & SVGs) from OS
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
@@ -660,14 +660,12 @@ export const Canvas: React.FC = () => {
     const worldPoint = screenToWorld({ x: screenX, y: screenY }, viewport);
 
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const dataUrl = await readFileAsDataURL(file);
-      const imgNode = createDefaultNode('image', worldPoint.x, worldPoint.y, {
-        src: dataUrl,
-        name: file.name.replace(/\.[^/.]+$/, '')
-      });
-      addNode(imgNode);
-      setSelectedIds([imgNode.id]);
+    if (file) {
+      const importedNode = await importAssetFile(file, Math.round(worldPoint.x), Math.round(worldPoint.y));
+      if (importedNode) {
+        addNode(importedNode);
+        setSelectedIds([importedNode.id]);
+      }
     }
   };
 

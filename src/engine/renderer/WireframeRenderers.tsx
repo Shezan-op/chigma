@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CornerRadii } from '../../models/styles';
 import type {
   ButtonNode,
   InputNode,
@@ -22,8 +23,15 @@ import type {
   ToastNode
 } from '../../models/node';
 
+function extractRadius(cr?: number | CornerRadii, defaultVal = 0): number {
+  if (cr === undefined || cr === null) return defaultVal;
+  if (typeof cr === 'number') return cr;
+  return cr.topLeft || defaultVal;
+}
+
 export const ButtonRenderer: React.FC<{ node: ButtonNode }> = React.memo(({ node }) => {
   const { width, height, label, variant = 'primary', cornerRadius = 6, fill, textColor } = node;
+  const rx = extractRadius(cornerRadius, 6);
 
   let bg = fill || '#18181B';
   let border = 'none';
@@ -49,8 +57,8 @@ export const ButtonRenderer: React.FC<{ node: ButtonNode }> = React.memo(({ node
       <rect
         width={width}
         height={height}
-        rx={cornerRadius}
-        ry={cornerRadius}
+        rx={rx}
+        ry={rx}
         fill={bg}
         stroke={border !== 'none' ? border : undefined}
         strokeWidth={border !== 'none' ? 1 : 0}
@@ -72,6 +80,7 @@ export const ButtonRenderer: React.FC<{ node: ButtonNode }> = React.memo(({ node
 
 export const InputRenderer: React.FC<{ node: InputNode }> = React.memo(({ node }) => {
   const { width, height, label, placeholder, value, cornerRadius = 6 } = node;
+  const rx = extractRadius(cornerRadius, 6);
   const hasLabel = Boolean(label);
   const inputY = hasLabel ? 20 : 0;
   const inputH = hasLabel ? height - 20 : height;
@@ -88,7 +97,7 @@ export const InputRenderer: React.FC<{ node: InputNode }> = React.memo(({ node }
         y={inputY}
         width={width}
         height={inputH}
-        rx={cornerRadius}
+        rx={rx}
         fill="#FFFFFF"
         stroke="#D4D4D8"
         strokeWidth={1}
@@ -108,6 +117,7 @@ export const InputRenderer: React.FC<{ node: InputNode }> = React.memo(({ node }
 
 export const TextareaRenderer: React.FC<{ node: TextareaNode }> = React.memo(({ node }) => {
   const { width, height, label, placeholder, value, cornerRadius = 6 } = node;
+  const rx = extractRadius(cornerRadius, 6);
   const hasLabel = Boolean(label);
   const boxY = hasLabel ? 20 : 0;
   const boxH = hasLabel ? height - 20 : height;
@@ -124,7 +134,7 @@ export const TextareaRenderer: React.FC<{ node: TextareaNode }> = React.memo(({ 
         y={boxY}
         width={width}
         height={boxH}
-        rx={cornerRadius}
+        rx={rx}
         fill="#FFFFFF"
         stroke="#D4D4D8"
         strokeWidth={1}
@@ -222,6 +232,7 @@ export const ToggleRenderer: React.FC<{ node: ToggleNode }> = React.memo(({ node
 
 export const DropdownRenderer: React.FC<{ node: DropdownNode }> = React.memo(({ node }) => {
   const { width, height, label, placeholder, options = [], selectedIndex = 0, cornerRadius = 6 } = node;
+  const rx = extractRadius(cornerRadius, 6);
   const textVal = options[selectedIndex] || placeholder;
   const hasLabel = Boolean(label);
   const boxY = hasLabel ? 20 : 0;
@@ -239,7 +250,7 @@ export const DropdownRenderer: React.FC<{ node: DropdownNode }> = React.memo(({ 
         y={boxY}
         width={width}
         height={boxH}
-        rx={cornerRadius}
+        rx={rx}
         fill="#FFFFFF"
         stroke="#D4D4D8"
         strokeWidth={1}
@@ -337,6 +348,7 @@ export const SidebarRenderer: React.FC<{ node: SidebarNode }> = React.memo(({ no
 
 export const CardRenderer: React.FC<{ node: CardNode }> = React.memo(({ node }) => {
   const { width, height, title, subtitle, content, hasImage = true, showFooter = true, footerText, cornerRadius = 8, fill = '#FFFFFF', stroke = '#E4E4E7', strokeWidth = 1 } = node;
+  const rx = extractRadius(cornerRadius, 8);
   const imgH = hasImage ? Math.min(80, height * 0.4) : 0;
 
   return (
@@ -344,7 +356,7 @@ export const CardRenderer: React.FC<{ node: CardNode }> = React.memo(({ node }) 
       <rect
         width={width}
         height={height}
-        rx={cornerRadius}
+        rx={rx}
         fill={fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
@@ -356,7 +368,7 @@ export const CardRenderer: React.FC<{ node: CardNode }> = React.memo(({ node }) 
           width={width}
           height={imgH}
           fill="#F4F4F5"
-          rx={cornerRadius}
+          rx={rx}
         />
       )}
       <text
@@ -682,10 +694,11 @@ export const PaginationRenderer: React.FC<{ node: PaginationNode }> = React.memo
 
 export const ModalRenderer: React.FC<{ node: ModalNode }> = React.memo(({ node }) => {
   const { width, height, title, message, confirmText, cancelText, cornerRadius = 10 } = node;
+  const rx = extractRadius(cornerRadius, 10);
 
   return (
     <g>
-      <rect width={width} height={height} rx={cornerRadius} fill="#FFFFFF" stroke="#D4D4D8" strokeWidth={1} />
+      <rect width={width} height={height} rx={rx} fill="#FFFFFF" stroke="#D4D4D8" strokeWidth={1} />
       <text x={20} y={32} fontFamily="Inter, sans-serif" fontSize={16} fontWeight={700} fill="#18181B">
         {title}
       </text>
@@ -708,12 +721,13 @@ export const ModalRenderer: React.FC<{ node: ModalNode }> = React.memo(({ node }
 
 export const ToastRenderer: React.FC<{ node: ToastNode }> = React.memo(({ node }) => {
   const { width, height, title, message, variant = 'success', cornerRadius = 8 } = node;
+  const rx = extractRadius(cornerRadius, 8);
   const barColor = variant === 'success' ? '#10B981' : variant === 'error' ? '#EF4444' : variant === 'warning' ? '#F59E0B' : '#3B82F6';
 
   return (
     <g>
-      <rect width={width} height={height} rx={cornerRadius} fill="#18181B" />
-      <rect x={0} y={0} width={6} height={height} rx={cornerRadius} fill={barColor} />
+      <rect width={width} height={height} rx={rx} fill="#18181B" />
+      <rect x={0} y={0} width={6} height={height} rx={rx} fill={barColor} />
       <text x={18} y={26} fontFamily="Inter, sans-serif" fontSize={13} fontWeight={600} fill="#FFFFFF">
         {title}
       </text>

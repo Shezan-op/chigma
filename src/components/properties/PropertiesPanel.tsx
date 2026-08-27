@@ -2,7 +2,12 @@ import React from 'react';
 import { useEditorStore } from '../../store/useEditorStore';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { GeometrySection } from './GeometrySection';
-import { FillStrokeSection } from './FillStrokeSection';
+import { CornerRadiusControl } from './CornerRadiusControl';
+import { FillsSection } from './FillsSection';
+import { StrokesSection } from './StrokesSection';
+import { EffectsSection } from './EffectsSection';
+import { ConstraintsSection } from './ConstraintsSection';
+import { ComponentSection } from './ComponentSection';
 import { TypographySection } from './TypographySection';
 import { ChartSection } from './ChartSection';
 import { WireframeSection } from './WireframeSection';
@@ -13,7 +18,7 @@ import { Sliders } from 'lucide-react';
 
 export const PropertiesPanel: React.FC = () => {
   const { selectedIds, propertiesCollapsed } = useEditorStore();
-  const { getNodeById, getActivePage, setPageBackground } = useDocumentStore();
+  const { getNodeById, getActivePage, setPageBackground, updateNodes } = useDocumentStore();
 
   if (propertiesCollapsed) return null;
 
@@ -65,6 +70,16 @@ export const PropertiesPanel: React.FC = () => {
   const first = selectedNodes[0];
   const isMultiple = selectedNodes.length > 1;
 
+  const handleUpdate = (props: Partial<ChigmaNode>) => {
+    const updates = selectedNodes.map((n) => ({
+      id: n.id,
+      props
+    }));
+    updateNodes(updates, true, 'Update Properties');
+  };
+
+  const hasCornerRadius = 'cornerRadius' in first;
+
   return (
     <aside className="chigma-properties-panel">
       <div className="panel-header">
@@ -75,14 +90,46 @@ export const PropertiesPanel: React.FC = () => {
       </div>
 
       <div className="panel-body">
+        {/* Component & Instance Section */}
+        {!isMultiple && (
+          <ComponentSection node={first} onUpdate={handleUpdate} />
+        )}
+
         {/* Geometry / Dimensions Section */}
         <GeometrySection selectedNodes={selectedNodes} />
+
+        {/* Corner Radius Per Corner */}
+        {hasCornerRadius && (
+          <div className="property-group">
+            <CornerRadiusControl
+              value={(first as any).cornerRadius}
+              onChange={(newRadius) => handleUpdate({ cornerRadius: newRadius } as any)}
+            />
+          </div>
+        )}
+
+        {/* Responsive Constraints & Sizing */}
+        {!isMultiple && (
+          <ConstraintsSection node={first} onUpdate={handleUpdate} />
+        )}
 
         {/* Auto-Layout & Spacing Section */}
         <AutoLayoutSection selectedNodes={selectedNodes} />
 
-        {/* Fill & Stroke Section */}
-        <FillStrokeSection selectedNodes={selectedNodes} />
+        {/* Advanced Fills (Solid, Gradients, Multiple Fills, Blend Modes) */}
+        <div className="property-group">
+          <FillsSection node={first} onUpdate={handleUpdate} />
+        </div>
+
+        {/* Advanced Strokes (Solid, Dashed, Dotted, Inside/Center/Outside Align) */}
+        <div className="property-group">
+          <StrokesSection node={first} onUpdate={handleUpdate} />
+        </div>
+
+        {/* Multi-Effects (Drop Shadow, Inner Shadow, Layer Blur, Background Blur) */}
+        <div className="property-group">
+          <EffectsSection node={first} onUpdate={handleUpdate} />
+        </div>
 
         {/* Prototyping Interaction Section */}
         <InteractionSection selectedNodes={selectedNodes} />
