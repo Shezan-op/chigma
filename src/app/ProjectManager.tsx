@@ -18,7 +18,8 @@ import {
   Sparkles,
   Smartphone,
   BarChart3,
-  Search
+  Search,
+  Download
 } from 'lucide-react';
 
 interface ProjectManagerProps {
@@ -251,10 +252,28 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
           <div className="manager-header-actions">
             <button
               className="btn btn-secondary"
+              onClick={async () => {
+                const { exportWorkspaceBackup } = await import('../persistence/workspaceBackup');
+                const json = await exportWorkspaceBackup();
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chigma-workspace-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              title="Download full workspace backup (.json)"
+            >
+              <Download size={14} />
+              <span>Backup Workspace</span>
+            </button>
+            <button
+              className="btn btn-secondary"
               onClick={() => setImportModalOpen(true)}
             >
               <Upload size={14} />
-              <span>Import .chigma.json</span>
+              <span>Import Project</span>
             </button>
             <button className="btn btn-primary" onClick={handleCreateNew}>
               <Plus size={15} />
