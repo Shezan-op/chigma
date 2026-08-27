@@ -5,6 +5,7 @@ import { useProjectStore } from '../store/useProjectStore';
 import { useDocumentStore } from '../store/useDocumentStore';
 import { ImportModal } from '../components/dialogs/ImportModal';
 import { ConfirmModal } from '../components/dialogs/ConfirmModal';
+import { ToastContainer } from '../components/dialogs/ToastContainer';
 
 export const App: React.FC = () => {
   const { activeProjectId, openProject } = useProjectStore();
@@ -54,6 +55,7 @@ export const App: React.FC = () => {
       ) : (
         <Editor onBackToProjects={handleBackToProjects} />
       )}
+      <ToastContainer />
     </div>
   );
 };

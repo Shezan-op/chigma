@@ -1,7 +1,6 @@
 import React from 'react';
 import type { ChigmaNode } from '../../models/node';
 import type { StrokeAlign, StrokeStyle } from '../../models/styles';
-import { Plus } from 'lucide-react';
 
 interface StrokesSectionProps {
   node: ChigmaNode;

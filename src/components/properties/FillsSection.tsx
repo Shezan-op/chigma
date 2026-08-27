@@ -1,21 +1,12 @@
 import React from 'react';
 import type { ChigmaNode } from '../../models/node';
-import type { FillPaint, BlendMode, LinearGradient } from '../../models/styles';
+import type { FillPaint } from '../../models/styles';
 import { Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 
 interface FillsSectionProps {
   node: ChigmaNode;
   onUpdate: (props: Partial<ChigmaNode>) => void;
 }
-
-const BLEND_MODES: BlendMode[] = [
-  'normal',
-  'multiply',
-  'screen',
-  'overlay',
-  'darken',
-  'lighten'
-];
 
 export const FillsSection: React.FC<FillsSectionProps> = ({ node, onUpdate }) => {
   const fills: FillPaint[] = node.fills && node.fills.length > 0

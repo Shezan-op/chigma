@@ -4,134 +4,143 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { importDocumentFromJson } from '../../engine/export/exportJson';
 import { readFileAsDataURL, getImageDimensions } from '../../utils/file';
 import { createDefaultNode } from '../../models/document';
-import { X, Upload, FileCode, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { X, Upload, FileCode, AlertCircle, CloudUpload } from 'lucide-react';
 
 export const ImportModal: React.FC = () => {
   const setDocument = useDocumentStore((s) => s.setDocument);
   const addNode = useDocumentStore((s) => s.addNode);
   const { isImportModalOpen, setImportModalOpen, saveCurrentProject, loadProjectsList } = useProjectStore();
 
-  const jsonInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   if (!isImportModalOpen) return null;
 
-  const handleJsonSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const processFile = async (file: File) => {
     setErrorMsg(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const doc = await importDocumentFromJson(file);
-      await saveCurrentProject(doc);
-      setDocument(doc);
-      await loadProjectsList();
-      setImportModalOpen(false);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to import JSON file.');
+    if (file.name.endsWith('.json') || file.name.endsWith('.chigma.json')) {
+      try {
+        const doc = await importDocumentFromJson(file);
+        await saveCurrentProject(doc);
+        setDocument(doc);
+        await loadProjectsList();
+        setImportModalOpen(false);
+      } catch (err: any) {
+        setErrorMsg(err.message || 'Failed to import JSON file.');
+      }
+    } else if (file.type.startsWith('image/')) {
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        const dims = await getImageDimensions(dataUrl);
+        const maxDim = 400;
+        let w = dims.width;
+        let h = dims.height;
+        if (w > maxDim || h > maxDim) {
+          const aspect = w / h;
+          if (w > h) {
+            w = maxDim;
+            h = maxDim / aspect;
+          } else {
+            h = maxDim;
+            w = maxDim * aspect;
+          }
+        }
+        const imgNode = createDefaultNode('image', 150, 150, {
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          src: dataUrl,
+          width: Math.round(w),
+          height: Math.round(h)
+        });
+        addNode(imgNode);
+        setImportModalOpen(false);
+      } catch (err: any) {
+        setErrorMsg(err.message || 'Failed to import image.');
+      }
+    } else {
+      setErrorMsg('Unsupported file format. Please upload .chigma.json or an image file.');
     }
   };
 
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setErrorMsg(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const dataUrl = await readFileAsDataURL(file);
-      const dims = await getImageDimensions(dataUrl);
-
-      const maxDim = 400;
-      let w = dims.width;
-      let h = dims.height;
-
-      if (w > maxDim || h > maxDim) {
-        const aspect = w / h;
-        if (w > h) {
-          w = maxDim;
-          h = maxDim / aspect;
-        } else {
-          h = maxDim;
-          w = maxDim * aspect;
-        }
-      }
-
-      const imgNode = createDefaultNode('image', 150, 150, {
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        src: dataUrl,
-        width: Math.round(w),
-        height: Math.round(h)
-      });
-
-      addNode(imgNode);
-      setImportModalOpen(false);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to import image.');
-    }
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
   };
 
   return (
-    <div className="modal-backdrop" onClick={() => setImportModalOpen(false)}>
-      <div className="chigma-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Import File</h3>
-          <button className="btn-icon sm" onClick={() => setImportModalOpen(false)}>
-            <X size={16} />
+    <div className="chigma-modal-backdrop" onClick={() => setImportModalOpen(false)}>
+      <div className="chigma-confirm-modal-card" style={{ width: 480 }} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <FileCode size={18} color="var(--chigma-accent)" />
+            <h3 className="confirm-modal-title" style={{ margin: 0 }}>Import Project</h3>
+          </div>
+          <button className="confirm-modal-close-btn" style={{ position: 'static' }} onClick={() => setImportModalOpen(false)}>
+            <X size={15} />
           </button>
         </div>
 
-        <div className="modal-body">
-          {errorMsg && (
-            <div className="error-alert">
-              <AlertCircle size={16} />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {/* Import JSON Card */}
-          <div className="export-card">
-            <div className="card-left">
-              <div className="card-badge"><FileCode size={20} /></div>
-              <div>
-                <h4>Chigma Project (.chigma.json)</h4>
-                <p>Import and open an existing project file</p>
-              </div>
-            </div>
-            <input
-              ref={jsonInputRef}
-              type="file"
-              accept=".json,.chigma.json"
-              style={{ display: 'none' }}
-              onChange={handleJsonSelect}
-            />
-            <button className="btn-primary" onClick={() => jsonInputRef.current?.click()}>
-              <Upload size={14} />
-              <span>Select JSON</span>
-            </button>
+        {errorMsg && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', backgroundColor: '#FEE2E2', color: '#B91C1C', borderRadius: 8, fontSize: 12, marginBottom: 14 }}>
+            <AlertCircle size={15} />
+            <span>{errorMsg}</span>
           </div>
+        )}
 
-          {/* Import Image Card */}
-          <div className="export-card">
-            <div className="card-left">
-              <div className="card-badge"><ImageIcon size={20} /></div>
-              <div>
-                <h4>Image Asset (PNG, JPG, WEBP, SVG)</h4>
-                <p>Insert an image locally onto the active canvas</p>
-              </div>
-            </div>
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
-              style={{ display: 'none' }}
-              onChange={handleImageSelect}
-            />
-            <button className="btn-secondary" onClick={() => imageInputRef.current?.click()}>
-              <Upload size={14} />
-              <span>Select Image</span>
-            </button>
+        {/* Drag and drop upload zone */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            border: `2px dashed ${isDragging ? 'var(--chigma-accent)' : 'var(--chigma-hairline)'}`,
+            borderRadius: 12,
+            padding: '36px 20px',
+            textAlign: 'center',
+            backgroundColor: isDragging ? 'var(--chigma-accent-subtle)' : 'var(--chigma-surface-soft)',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            marginBottom: 20
+          }}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,.chigma.json,image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) processFile(f);
+            }}
+          />
+          <div style={{ width: 44, height: 44, borderRadius: 50, backgroundColor: '#FFFFFF', border: '1px solid var(--chigma-hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto', color: 'var(--chigma-accent)' }}>
+            <CloudUpload size={22} />
           </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--chigma-text-primary)', marginBottom: 4 }}>
+            Click to upload or drag &amp; drop
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--chigma-text-tertiary)' }}>
+            Supports .chigma.json project files and raster image assets (PNG, JPG, SVG)
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="confirm-modal-footer">
+          <button className="confirm-btn cancel" onClick={() => setImportModalOpen(false)}>
+            Cancel
+          </button>
+          <button
+            className="confirm-btn"
+            style={{ backgroundColor: 'var(--chigma-accent)', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 6 }}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload size={14} />
+            <span>Browse Files</span>
+          </button>
         </div>
       </div>
     </div>
