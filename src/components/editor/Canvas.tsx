@@ -8,6 +8,7 @@ import { MarqueeOverlay } from './MarqueeOverlay';
 import { TextEditorOverlay } from './TextEditorOverlay';
 import { RulersOverlay } from './RulersOverlay';
 import { DistanceMeasurementOverlay } from './DistanceMeasurementOverlay';
+import { FloatingActionBar } from './FloatingActionBar';
 import { screenToWorld } from '../../engine/geometry/matrix';
 import { calculateResize, type HandleType } from '../../engine/geometry/resize';
 import { calculateRotation } from '../../engine/geometry/rotation';
@@ -783,6 +784,9 @@ export const Canvas: React.FC = () => {
           onClose={() => setEditingTextNodeId(null)}
         />
       )}
+
+      {/* Floating Action Bar (Bottom Center) */}
+      <FloatingActionBar />
     </div>
   );
 };

@@ -27,11 +27,13 @@ export const DevModePanel: React.FC = () => {
 
   if (!selectedNode) {
     return (
-      <div className="p-6 text-center text-zinc-400 space-y-3">
-        <Code className="w-8 h-8 mx-auto opacity-50 text-indigo-400" />
-        <h3 className="text-sm font-bold text-zinc-300">Dev Mode / Handoff Inspector</h3>
-        <p className="text-xs text-zinc-500">
-          Select any element or frame on the canvas to inspect box-model metrics, CSS variables, and copy production React/Tailwind/Next.js code.
+      <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--chigma-text-tertiary)' }}>
+        <Code size={32} style={{ margin: '0 auto 12px auto', color: 'var(--chigma-accent)', opacity: 0.7 }} />
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--chigma-text-primary)', marginBottom: 4 }}>
+          Dev Mode &amp; Code Handoff
+        </h3>
+        <p style={{ fontSize: 11, lineHeight: 1.4, maxWidth: 220, margin: '0 auto' }}>
+          Select any element or wireframe component on the canvas to inspect box-model metrics, design tokens, and copy production React / Tailwind / Next.js code.
         </p>
       </div>
     );
@@ -58,81 +60,72 @@ export const DevModePanel: React.FC = () => {
       : `${selectedNode.cornerRadius || 0}px`;
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 text-xs overflow-y-auto">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 12 }}>
       {/* Dev Mode Header */}
-      <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-950/60">
-        <div className="flex items-center gap-2">
-          <Cpu className="w-4 h-4 text-indigo-500" />
-          <span className="font-bold text-zinc-900 dark:text-zinc-100">Dev & Handoff Mode</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid var(--chigma-hairline)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Cpu size={15} color="var(--chigma-accent)" />
+          <span style={{ fontWeight: 700, color: 'var(--chigma-text-primary)' }}>Dev &amp; Handoff</span>
         </div>
-        <span className="px-2 py-0.5 text-[10px] font-mono bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 rounded-full font-semibold">
+        <span style={{ fontSize: 10, fontFamily: 'var(--chigma-font-mono)', padding: '2px 6px', borderRadius: 4, backgroundColor: 'var(--chigma-accent-subtle)', color: 'var(--chigma-accent)', fontWeight: 600 }}>
           {selectedNode.type}
         </span>
       </div>
 
       {/* Box Model & Layout Specs */}
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 space-y-3">
-        <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">
-          Box Model & Geometry
-        </span>
-        <div className="grid grid-cols-2 gap-2 text-zinc-700 dark:text-zinc-300 font-mono text-[11px]">
-          <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-            <span className="text-zinc-400 block text-[9px]">WIDTH</span>
-            <span className="font-bold">{Math.round(selectedNode.width)}px</span>
+      <div className="inspector-section">
+        <span className="section-label">BOX MODEL &amp; GEOMETRY</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          <div style={{ padding: '6px 8px', backgroundColor: 'var(--chigma-surface-soft)', border: '1px solid var(--chigma-hairline)', borderRadius: 6 }}>
+            <span style={{ fontSize: 9, color: 'var(--chigma-text-tertiary)', display: 'block', fontWeight: 600 }}>WIDTH</span>
+            <span style={{ fontFamily: 'var(--chigma-font-mono)', fontWeight: 700 }}>{Math.round(selectedNode.width)}px</span>
           </div>
-          <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-            <span className="text-zinc-400 block text-[9px]">HEIGHT</span>
-            <span className="font-bold">{Math.round(selectedNode.height)}px</span>
+          <div style={{ padding: '6px 8px', backgroundColor: 'var(--chigma-surface-soft)', border: '1px solid var(--chigma-hairline)', borderRadius: 6 }}>
+            <span style={{ fontSize: 9, color: 'var(--chigma-text-tertiary)', display: 'block', fontWeight: 600 }}>HEIGHT</span>
+            <span style={{ fontFamily: 'var(--chigma-font-mono)', fontWeight: 700 }}>{Math.round(selectedNode.height)}px</span>
           </div>
-          <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-            <span className="text-zinc-400 block text-[9px]">POSITION X, Y</span>
-            <span className="font-bold">{Math.round(selectedNode.x)}, {Math.round(selectedNode.y)}</span>
+          <div style={{ padding: '6px 8px', backgroundColor: 'var(--chigma-surface-soft)', border: '1px solid var(--chigma-hairline)', borderRadius: 6 }}>
+            <span style={{ fontSize: 9, color: 'var(--chigma-text-tertiary)', display: 'block', fontWeight: 600 }}>POSITION</span>
+            <span style={{ fontFamily: 'var(--chigma-font-mono)', fontWeight: 700 }}>X:{Math.round(selectedNode.x)} Y:{Math.round(selectedNode.y)}</span>
           </div>
-          <div className="p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-            <span className="text-zinc-400 block text-[9px]">BORDER RADIUS</span>
-            <span className="font-bold">{cornerRadiusVal}</span>
+          <div style={{ padding: '6px 8px', backgroundColor: 'var(--chigma-surface-soft)', border: '1px solid var(--chigma-hairline)', borderRadius: 6 }}>
+            <span style={{ fontSize: 9, color: 'var(--chigma-text-tertiary)', display: 'block', fontWeight: 600 }}>RADIUS</span>
+            <span style={{ fontFamily: 'var(--chigma-font-mono)', fontWeight: 700 }}>{cornerRadiusVal}</span>
           </div>
         </div>
       </div>
 
       {/* Styling & CSS Variables View */}
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 space-y-3">
-        <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">
-          CSS Variables & Tokens
-        </span>
-        <div className="space-y-1.5 font-mono text-[11px]">
-          <div className="flex items-center justify-between p-1.5 bg-zinc-50 dark:bg-zinc-800/40 rounded">
-            <span className="text-zinc-400">background</span>
-            <div className="flex items-center gap-1.5">
-              <span
-                className="w-3 h-3 rounded border border-zinc-300 dark:border-zinc-700"
-                style={{ backgroundColor: selectedNode.fill || '#FFFFFF' }}
-              />
-              <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+      <div className="inspector-section">
+        <span className="section-label">CSS TOKENS</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', backgroundColor: 'var(--chigma-surface-soft)', border: '1px solid var(--chigma-hairline)', borderRadius: 6 }}>
+            <span style={{ color: 'var(--chigma-text-tertiary)', fontFamily: 'var(--chigma-font-mono)', fontSize: 11 }}>background</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, border: '1px solid var(--chigma-hairline)', backgroundColor: selectedNode.fill || '#FFFFFF' }} />
+              <span style={{ fontFamily: 'var(--chigma-font-mono)', fontWeight: 600, color: 'var(--chigma-accent)' }}>
                 {selectedNode.fill || '#FFFFFF'}
               </span>
             </div>
           </div>
-          {selectedNode.stroke && (
-            <div className="flex items-center justify-between p-1.5 bg-zinc-50 dark:bg-zinc-800/40 rounded">
-              <span className="text-zinc-400">border-color</span>
-              <span className="text-zinc-800 dark:text-zinc-200">{selectedNode.stroke}</span>
+          {selectedNode.stroke && selectedNode.stroke !== 'none' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', backgroundColor: 'var(--chigma-surface-soft)', border: '1px solid var(--chigma-hairline)', borderRadius: 6 }}>
+              <span style={{ color: 'var(--chigma-text-tertiary)', fontFamily: 'var(--chigma-font-mono)', fontSize: 11 }}>border-color</span>
+              <span style={{ fontFamily: 'var(--chigma-font-mono)', fontWeight: 600 }}>{selectedNode.stroke}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Code Generation Section */}
-      <div className="flex-1 flex flex-col p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
-            Export Component Code
-          </span>
-          {/* Framework Switcher */}
+      <div className="inspector-section">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <span className="section-label">CODE EXPORT</span>
           <select
             value={framework}
             onChange={(e) => setFramework(e.target.value as ExportFramework)}
-            className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1 text-[11px] font-semibold outline-none cursor-pointer"
+            className="prop-select"
+            style={{ fontSize: 11, padding: '2px 6px' }}
           >
             <option value="react_tailwind">React + Tailwind</option>
             <option value="nextjs">Next.js Component</option>
@@ -141,22 +134,48 @@ export const DevModePanel: React.FC = () => {
         </div>
 
         {/* Code Snippet Box */}
-        <div className="flex-1 min-h-[160px] bg-zinc-950 text-zinc-100 rounded-xl p-3 font-mono text-[11px] overflow-auto relative border border-zinc-800 shadow-inner">
+        <div style={{
+          backgroundColor: '#0F172A',
+          color: '#E2E8F0',
+          borderRadius: 8,
+          padding: 10,
+          fontFamily: 'var(--chigma-font-mono)',
+          fontSize: 10.5,
+          position: 'relative',
+          border: '1px solid #1E293B',
+          maxHeight: 220,
+          overflow: 'auto'
+        }}>
           <button
             onClick={handleCopy}
-            className="absolute top-2 right-2 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[10px] font-semibold transition border border-zinc-700"
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '3px 8px',
+              borderRadius: 4,
+              backgroundColor: '#1E293B',
+              border: '1px solid #334155',
+              color: '#F8FAFC',
+              fontSize: 10,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
           >
             {copied ? (
               <>
-                <Check className="w-3 h-3 text-emerald-400" /> Copied!
+                <Check size={11} color="#34D399" /> <span>Copied!</span>
               </>
             ) : (
               <>
-                <Copy className="w-3 h-3" /> Copy Code
+                <Copy size={11} /> <span>Copy</span>
               </>
             )}
           </button>
-          <pre className="pt-6">{codeOutput}</pre>
+          <pre style={{ paddingTop: 20, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{codeOutput}</pre>
         </div>
       </div>
     </div>

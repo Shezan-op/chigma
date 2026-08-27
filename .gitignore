@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright MCP & Temporary test artifacts
+.playwright-mcp/
+chigma_*.png

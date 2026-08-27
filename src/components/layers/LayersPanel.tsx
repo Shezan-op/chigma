@@ -1,135 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDocumentStore } from '../../store/useDocumentStore';
-import { useEditorStore } from '../../store/useEditorStore';
 import { LayerTreeItem } from './LayerTreeItem';
 import {
-  ArrowUpToLine,
-  ArrowUp,
-  ArrowDown,
-  ArrowDownToLine,
-  FolderPlus,
-  FolderMinus,
-  Trash2,
-  Copy
+  Search,
+  SlidersHorizontal
 } from 'lucide-react';
 
 export const LayersPanel: React.FC = () => {
   const activePage = useDocumentStore((s) => s.getActivePage());
-  const reorderNodes = useDocumentStore((s) => s.reorderNodes);
-  const groupNodes = useDocumentStore((s) => s.groupNodes);
-  const ungroupNodes = useDocumentStore((s) => s.ungroupNodes);
-  const deleteNodes = useDocumentStore((s) => s.deleteNodes);
-  const duplicateNodes = useDocumentStore((s) => s.duplicateNodes);
-  const selectedIds = useEditorStore((s) => s.selectedIds);
-  const setSelectedIds = useEditorStore((s) => s.setSelectedIds);
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const nodes = activePage?.children || [];
   // Render in reverse so top layers visually appear at top of list
-  const reversedNodes = [...nodes].reverse();
-
-  const hasSelection = selectedIds.length > 0;
-  const isSingleGroupSelected =
-    selectedIds.length === 1 &&
-    nodes.some((n) => n.id === selectedIds[0] && n.type === 'group');
-
-  const handleGroup = () => {
-    if (selectedIds.length >= 2) {
-      const newGroupId = groupNodes(selectedIds);
-      if (newGroupId) setSelectedIds([newGroupId]);
-    }
-  };
-
-  const handleUngroup = () => {
-    if (isSingleGroupSelected) {
-      const restored = ungroupNodes(selectedIds[0]);
-      if (restored.length > 0) setSelectedIds(restored);
-    }
-  };
+  const filteredNodes = nodes
+    .filter((n) => n.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .reverse();
 
   return (
-    <div className="chigma-layers-panel">
-      {/* Action Toolbar for Layers */}
-      <div className="layers-action-bar">
-        <div className="btn-group">
-          <button
-            className="btn-icon xs"
-            disabled={!hasSelection}
-            onClick={() => reorderNodes('front', selectedIds)}
-            title="Bring to Front (Ctrl+Shift+])"
-          >
-            <ArrowUpToLine size={13} />
-          </button>
-          <button
-            className="btn-icon xs"
-            disabled={!hasSelection}
-            onClick={() => reorderNodes('forward', selectedIds)}
-            title="Bring Forward (Ctrl+])"
-          >
-            <ArrowUp size={13} />
-          </button>
-          <button
-            className="btn-icon xs"
-            disabled={!hasSelection}
-            onClick={() => reorderNodes('backward', selectedIds)}
-            title="Send Backward (Ctrl+[)"
-          >
-            <ArrowDown size={13} />
-          </button>
-          <button
-            className="btn-icon xs"
-            disabled={!hasSelection}
-            onClick={() => reorderNodes('back', selectedIds)}
-            title="Send to Back (Ctrl+Shift+[)"
-          >
-            <ArrowDownToLine size={13} />
-          </button>
-        </div>
-
-        <div className="btn-group">
-          <button
-            className="btn-icon xs"
-            disabled={selectedIds.length < 2}
-            onClick={handleGroup}
-            title="Group Selection (Ctrl+G)"
-          >
-            <FolderPlus size={13} />
-          </button>
-          <button
-            className="btn-icon xs"
-            disabled={!isSingleGroupSelected}
-            onClick={handleUngroup}
-            title="Ungroup (Ctrl+Shift+G)"
-          >
-            <FolderMinus size={13} />
-          </button>
-          <button
-            className="btn-icon xs"
-            disabled={!hasSelection}
-            onClick={() => duplicateNodes(selectedIds)}
-            title="Duplicate (Ctrl+D)"
-          >
-            <Copy size={13} />
-          </button>
-          <button
-            className="btn-icon xs danger"
-            disabled={!hasSelection}
-            onClick={() => deleteNodes(selectedIds)}
-            title="Delete (Del)"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
+    <div className="chigma-layers-panel-container">
+      {/* Search Layers Input */}
+      <div className="layers-search-box">
+        <Search size={13} className="layers-search-icon" />
+        <input
+          type="text"
+          placeholder="Search layers..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="layers-search-input"
+        />
+        <button className="layers-filter-btn" title="Filter options">
+          <SlidersHorizontal size={13} />
+        </button>
       </div>
 
-      {/* Layers Tree */}
-      <div className="layers-tree-content">
-        {reversedNodes.length === 0 ? (
-          <div className="empty-layers-state">
-            <span>No layers on this page</span>
-            <p>Draw shapes or add components</p>
+      {/* Layers Tree Content or Empty State */}
+      <div className="layers-tree-scroll-area">
+        {filteredNodes.length === 0 ? (
+          <div className="layers-empty-state">
+            {/* Isometric Stacked Layers Illustration */}
+            <div className="empty-layers-icon-container">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <path d="M24 10L38 18L24 26L10 18L24 10Z" stroke="#818CF8" strokeWidth="2" strokeLinejoin="round" fill="#EEF2FF" />
+                <path d="M10 24L24 32L38 24" stroke="#818CF8" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M10 30L24 38L38 30" stroke="#818CF8" strokeWidth="2" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <span className="empty-layers-headline">No layers on this page</span>
+            <p className="empty-layers-sub">Start drawing or add components to build your design.</p>
           </div>
         ) : (
-          reversedNodes.map((node) => <LayerTreeItem key={node.id} node={node} />)
+          <div className="layers-tree-list">
+            {filteredNodes.map((node) => (
+              <LayerTreeItem key={node.id} node={node} />
+            ))}
+          </div>
         )}
       </div>
     </div>

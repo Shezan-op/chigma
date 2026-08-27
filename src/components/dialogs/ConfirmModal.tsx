@@ -1,6 +1,6 @@
 import React from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 
 export const ConfirmModal: React.FC = () => {
   const { confirmModal, closeConfirmModal } = useProjectStore();
@@ -8,28 +8,35 @@ export const ConfirmModal: React.FC = () => {
   if (!confirmModal || !confirmModal.isOpen) return null;
 
   return (
-    <div className="modal-backdrop" onClick={closeConfirmModal}>
-      <div className="chigma-modal sm" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="modal-title-with-icon danger">
-            <AlertTriangle size={18} />
-            <h3>{confirmModal.title}</h3>
+    <div className="chigma-modal-backdrop" onClick={closeConfirmModal}>
+      <div className="chigma-confirm-modal-card" onClick={(e) => e.stopPropagation()}>
+        {/* Close Button */}
+        <button className="confirm-modal-close-btn" onClick={closeConfirmModal}>
+          <X size={15} />
+        </button>
+
+        <div className="confirm-modal-inner">
+          {/* Left Glowing Red Circle with Trash Icon */}
+          <div className="confirm-icon-glow-wrapper">
+            <div className="confirm-icon-circle">
+              <Trash2 size={22} className="confirm-trash-icon" />
+            </div>
           </div>
-          <button className="btn-icon sm" onClick={closeConfirmModal}>
-            <X size={16} />
-          </button>
+
+          {/* Right Text Content */}
+          <div className="confirm-text-area">
+            <h3 className="confirm-modal-title">{confirmModal.title}</h3>
+            <p className="confirm-modal-desc">{confirmModal.message}</p>
+          </div>
         </div>
 
-        <div className="modal-body">
-          <p className="confirm-message">{confirmModal.message}</p>
-        </div>
-
-        <div className="modal-footer">
-          <button className="btn-secondary" onClick={closeConfirmModal}>
+        {/* Footer Actions */}
+        <div className="confirm-modal-footer">
+          <button className="confirm-btn cancel" onClick={closeConfirmModal}>
             Cancel
           </button>
-          <button className="btn-danger" onClick={confirmModal.onConfirm}>
-            {confirmModal.confirmLabel || 'Confirm'}
+          <button className="confirm-btn danger" onClick={confirmModal.onConfirm}>
+            {confirmModal.confirmLabel || 'Delete Project'}
           </button>
         </div>
       </div>

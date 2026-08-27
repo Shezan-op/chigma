@@ -4,38 +4,35 @@ import { ToolStrip } from '../toolbar/ToolStrip';
 import { PagesBar } from '../layers/PagesBar';
 import { LayersPanel } from '../layers/LayersPanel';
 import { ComponentLibraryPanel } from './ComponentLibraryPanel';
-import { Layers, Component } from 'lucide-react';
 
 export const LeftSidebar: React.FC = () => {
   const { leftSidebarTab, setLeftSidebarTab } = useEditorStore();
 
   return (
-    <aside className="chigma-left-sidebar">
-      {/* 1. Main Tool Strip (Select, Shapes, Pencil, Text) */}
+    <aside className="chigma-left-sidebar-wrapper">
+      {/* 1. Vertical Toolstrip Bar (Far Left) */}
       <ToolStrip />
 
-      {/* 2. Side Panel Container */}
-      <div className="sidebar-content-area">
-        {/* Tab switcher: Layers vs Components */}
-        <div className="sidebar-tabs-header">
+      {/* 2. Drawer Panel (Layers / Components) */}
+      <div className="chigma-left-drawer">
+        {/* Segmented Top Tab Pill Switcher */}
+        <div className="drawer-tab-switcher">
           <button
-            className={`sidebar-tab ${leftSidebarTab === 'layers' ? 'active' : ''}`}
+            className={`drawer-tab-btn ${leftSidebarTab === 'layers' ? 'active' : ''}`}
             onClick={() => setLeftSidebarTab('layers')}
           >
-            <Layers size={14} />
-            <span>Layers</span>
+            Layers
           </button>
           <button
-            className={`sidebar-tab ${leftSidebarTab === 'components' ? 'active' : ''}`}
+            className={`drawer-tab-btn ${leftSidebarTab === 'components' ? 'active' : ''}`}
             onClick={() => setLeftSidebarTab('components')}
           >
-            <Component size={14} />
-            <span>Components</span>
+            Components
           </button>
         </div>
 
-        {/* Tab Content */}
-        <div className="sidebar-tab-body">
+        {/* Drawer Body Content */}
+        <div className="drawer-body">
           {leftSidebarTab === 'layers' ? (
             <>
               <PagesBar />

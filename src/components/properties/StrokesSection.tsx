@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ChigmaNode } from '../../models/node';
 import type { StrokeAlign, StrokeStyle } from '../../models/styles';
+import { Plus } from 'lucide-react';
 
 interface StrokesSectionProps {
   node: ChigmaNode;
@@ -12,102 +13,94 @@ export const StrokesSection: React.FC<StrokesSectionProps> = ({ node, onUpdate }
   const strokeWidth = node.strokeWidth !== undefined ? node.strokeWidth : 1;
   const strokeStyle = node.strokeStyle || 'solid';
   const strokeAlign = node.strokeAlign || 'center';
+  const isEnabled = Boolean(node.stroke && node.stroke !== 'none' && strokeWidth > 0);
+
+  const handleToggle = (checked: boolean) => {
+    if (checked) {
+      onUpdate({ stroke: '#71717A', strokeWidth: 1, strokeStyle: 'solid' });
+    } else {
+      onUpdate({ stroke: 'none', strokeWidth: 0 });
+    }
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: '11px', fontWeight: 600, color: '#525252' }}>Stroke</span>
+    <div className="inspector-section">
+      <div className="prop-row align-between">
+        <span className="section-label">STROKE</span>
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={isEnabled}
+            onChange={(e) => handleToggle(e.target.checked)}
+          />
+          <span className="toggle-slider" />
+        </label>
       </div>
 
-      <div
-        style={{
-          padding: '8px',
-          border: '1px solid #E6E6E6',
-          borderRadius: '6px',
-          backgroundColor: '#FCFCFB',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <input
-            type="color"
-            value={strokeColor === 'none' ? '#000000' : strokeColor}
-            onChange={(e) => onUpdate({ stroke: e.target.value })}
-            style={{
-              width: '24px',
-              height: '24px',
-              padding: 0,
-              border: '1px solid #D4D4D8',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          />
-          <input
-            type="text"
-            value={strokeColor}
-            onChange={(e) => onUpdate({ stroke: e.target.value })}
-            style={{
-              width: '74px',
-              fontSize: '11px',
-              padding: '3px 4px',
-              border: '1px solid #E6E6E6',
-              borderRadius: '4px',
-              textTransform: 'uppercase'
-            }}
-          />
-          <input
-            type="number"
-            min="0"
-            max="40"
-            value={strokeWidth}
-            onChange={(e) => onUpdate({ strokeWidth: Math.max(0, parseInt(e.target.value, 10) || 0) })}
-            style={{
-              width: '48px',
-              fontSize: '11px',
-              padding: '3px 4px',
-              border: '1px solid #E6E6E6',
-              borderRadius: '4px'
-            }}
-            placeholder="Width"
-          />
-        </div>
+      {isEnabled && (
+        <div
+          style={{
+            padding: '6px 8px',
+            border: '1px solid var(--chigma-hairline)',
+            borderRadius: 'var(--chigma-radius-sm)',
+            backgroundColor: 'var(--chigma-surface-soft)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px'
+          }}
+        >
+          {/* Swatch, Hex, Width */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="color-field-container" style={{ flex: 1 }}>
+              <div
+                className="color-swatch-box"
+                style={{ backgroundColor: strokeColor === 'none' ? '#71717A' : strokeColor }}
+              >
+                <input
+                  type="color"
+                  className="hidden-color-picker"
+                  value={strokeColor === 'none' ? '#71717A' : strokeColor}
+                  onChange={(e) => onUpdate({ stroke: e.target.value })}
+                />
+              </div>
+              <input
+                type="text"
+                className="color-hex-text-input"
+                value={strokeColor === 'none' ? '#71717A' : strokeColor}
+                onChange={(e) => onUpdate({ stroke: e.target.value })}
+              />
+            </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-          <div>
-            <span style={{ fontSize: '10px', color: '#737373', display: 'block', marginBottom: '2px' }}>Style</span>
+            {/* Width input */}
+            <div className="prop-input-badge-box" style={{ width: 60 }}>
+              <input
+                type="number"
+                min={0}
+                max={40}
+                className="prop-num-input"
+                value={strokeWidth}
+                onChange={(e) => onUpdate({ strokeWidth: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+              />
+              <span style={{ fontSize: 10, color: 'var(--chigma-text-tertiary)' }}>px</span>
+            </div>
+          </div>
+
+          {/* Style & Alignment */}
+          <div className="prop-two-col-row">
             <select
+              className="prop-select"
               value={strokeStyle}
               onChange={(e) => onUpdate({ strokeStyle: e.target.value as StrokeStyle })}
-              style={{
-                width: '100%',
-                fontSize: '11px',
-                padding: '3px 4px',
-                borderRadius: '4px',
-                border: '1px solid #E6E6E6',
-                backgroundColor: '#FFFFFF'
-              }}
             >
               <option value="solid">Solid</option>
               <option value="dashed">Dashed</option>
               <option value="dotted">Dotted</option>
             </select>
-          </div>
 
-          <div>
-            <span style={{ fontSize: '10px', color: '#737373', display: 'block', marginBottom: '2px' }}>Align</span>
             <select
+              className="prop-select"
               value={strokeAlign}
               onChange={(e) => onUpdate({ strokeAlign: e.target.value as StrokeAlign })}
-              style={{
-                width: '100%',
-                fontSize: '11px',
-                padding: '3px 4px',
-                borderRadius: '4px',
-                border: '1px solid #E6E6E6',
-                backgroundColor: '#FFFFFF'
-              }}
             >
               <option value="center">Center</option>
               <option value="inside">Inside</option>
@@ -115,7 +108,7 @@ export const StrokesSection: React.FC<StrokesSectionProps> = ({ node, onUpdate }
             </select>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

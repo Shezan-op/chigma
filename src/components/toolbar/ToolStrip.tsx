@@ -10,7 +10,10 @@ import {
   Pentagon,
   Type,
   PenTool,
-  Layout
+  Layout,
+  LayoutGrid,
+  Sparkles,
+  Sliders
 } from 'lucide-react';
 
 interface ToolItem {
@@ -21,37 +24,81 @@ interface ToolItem {
 }
 
 export const ToolStrip: React.FC = () => {
-  const { activeTool, setActiveTool } = useEditorStore();
+  const {
+    activeTool,
+    setActiveTool,
+    setLeftSidebarTab,
+    setIconPickerOpen,
+    setDesignSystemModalOpen
+  } = useEditorStore();
 
-  const tools: ToolItem[] = [
-    { id: 'select', label: 'Select', shortcut: 'V', icon: <MousePointer size={15} /> },
-    { id: 'hand', label: 'Hand / Pan', shortcut: 'H', icon: <Hand size={15} /> },
-    { id: 'frame', label: 'Frame', shortcut: 'F', icon: <Layout size={15} /> },
-    { id: 'rectangle', label: 'Rectangle', shortcut: 'R', icon: <Square size={15} /> },
-    { id: 'ellipse', label: 'Ellipse', shortcut: 'E', icon: <Circle size={15} /> },
-    { id: 'line', label: 'Line', shortcut: 'L', icon: <Minus size={15} /> },
-    { id: 'arrow', label: 'Arrow', shortcut: 'A', icon: <ArrowRight size={15} /> },
-    { id: 'polygon', label: 'Polygon', shortcut: '', icon: <Pentagon size={15} /> },
-    { id: 'text', label: 'Text', shortcut: 'T', icon: <Type size={15} /> },
-    { id: 'pencil', label: 'Pencil', shortcut: 'P', icon: <PenTool size={15} /> }
+  const primaryTools: ToolItem[] = [
+    { id: 'select', label: 'Select Tool', shortcut: 'V', icon: <MousePointer size={16} /> },
+    { id: 'hand', label: 'Hand / Pan Tool', shortcut: 'H', icon: <Hand size={16} /> },
+    { id: 'frame', label: 'Frame Tool', shortcut: 'F', icon: <Layout size={16} /> },
+    { id: 'rectangle', label: 'Rectangle Tool', shortcut: 'R', icon: <Square size={16} /> },
+    { id: 'ellipse', label: 'Ellipse Tool', shortcut: 'E', icon: <Circle size={16} /> },
+    { id: 'line', label: 'Line Tool', shortcut: 'L', icon: <Minus size={16} /> },
+    { id: 'arrow', label: 'Arrow Tool', shortcut: 'A', icon: <ArrowRight size={16} /> },
+    { id: 'polygon', label: 'Polygon Tool', shortcut: '', icon: <Pentagon size={16} /> },
+    { id: 'text', label: 'Text Tool', shortcut: 'T', icon: <Type size={16} /> },
+    { id: 'pencil', label: 'Pencil Tool', shortcut: 'P', icon: <PenTool size={16} /> }
   ];
 
   return (
-    <div className="chigma-tool-strip">
-      {tools.map((t) => {
-        const isActive = activeTool === t.id;
-        return (
-          <button
-            key={t.id}
-            className={`chigma-tool-btn ${isActive ? 'active' : ''}`}
-            onClick={() => setActiveTool(t.id)}
-            title={`${t.label} (${t.shortcut || 'Click'})`}
-            aria-label={t.label}
-          >
-            {t.icon}
-          </button>
-        );
-      })}
+    <div className="chigma-vertical-toolstrip">
+      <div className="toolstrip-top-group">
+        {primaryTools.map((t) => {
+          const isActive = activeTool === t.id;
+          return (
+            <button
+              key={t.id}
+              className={`toolstrip-btn ${isActive ? 'active' : ''}`}
+              onClick={() => setActiveTool(t.id)}
+              title={`${t.label} (${t.shortcut || 'Click'})`}
+              aria-label={t.label}
+            >
+              {t.icon}
+            </button>
+          );
+        })}
+
+        <div className="toolstrip-divider" />
+
+        {/* Components Drawer Shortcut */}
+        <button
+          className="toolstrip-btn"
+          onClick={() => setLeftSidebarTab('components')}
+          title="Component Library"
+        >
+          <LayoutGrid size={16} />
+        </button>
+
+        {/* Vector Icon Picker */}
+        <button
+          className="toolstrip-btn"
+          onClick={() => setIconPickerOpen(true)}
+          title="Vector Icons Picker"
+        >
+          <Sparkles size={16} />
+        </button>
+
+        {/* Design System & Tokens */}
+        <button
+          className="toolstrip-btn"
+          onClick={() => setDesignSystemModalOpen(true)}
+          title="Design System & Variables"
+        >
+          <Sliders size={16} />
+        </button>
+      </div>
+
+      {/* Bottom User Avatar in Toolstrip */}
+      <div className="toolstrip-bottom-group">
+        <div className="toolstrip-user-badge" title="Shezan">
+          <span>S</span>
+        </div>
+      </div>
     </div>
   );
 };

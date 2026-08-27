@@ -1,80 +1,161 @@
 :root {
-  /* Figma Brand Design System (DESIGN.md) */
-  --chigma-primary: #000000;
+  /* Chigma Modern UI Design System Tokens */
+  --chigma-primary: #111827;
   --chigma-on-primary: #ffffff;
-  --chigma-ink: #000000;
+  --chigma-ink: #111827;
   --chigma-canvas: #ffffff;
-  --chigma-inverse-canvas: #000000;
+  --chigma-inverse-canvas: #111827;
   --chigma-inverse-ink: #ffffff;
-  --chigma-on-inverse-soft: #ffffff;
-  --chigma-hairline: #e6e6e6;
-  --chigma-hairline-soft: #f1f1f1;
-  --chigma-surface-soft: #f7f7f5;
+  --chigma-on-inverse-soft: #f9fafb;
+  --chigma-hairline: #e5e7eb;
+  --chigma-hairline-soft: #f3f4f6;
+  --chigma-surface-soft: #f9fafb;
+
+  /* Accent & Theme Palette */
+  --chigma-accent: #4f46e5;
+  --chigma-accent-hover: #4338ca;
+  --chigma-accent-subtle: #eef2ff;
+  --chigma-accent-blue: #3b82f6;
+  --chigma-accent-magenta: #ec4899;
 
   /* Signature Pastel Blocks */
   --chigma-block-lime: #dceeb1;
-  --chigma-block-lilac: #c5b0f4;
-  --chigma-block-cream: #f4ecd6;
-  --chigma-block-pink: #efd4d4;
-  --chigma-block-mint: #c8e6cd;
-  --chigma-block-coral: #f3c9b6;
-  --chigma-block-navy: #1f1d3d;
-  --chigma-accent-magenta: #ff3d8b;
-  --chigma-semantic-success: #1ea64a;
-  --chigma-overlay-scrim: rgba(0, 0, 0, 0.4);
+  --chigma-block-lilac: #e0e7ff;
+  --chigma-block-cream: #fef3c7;
+  --chigma-block-pink: #fce7f3;
+  --chigma-block-mint: #d1fae5;
+  --chigma-block-coral: #ffedd5;
+  --chigma-block-navy: #1e1b4b;
+  --chigma-semantic-success: #10b981;
+  --chigma-overlay-scrim: rgba(15, 23, 42, 0.4);
 
-  /* Modern UI Palette */
-  --chigma-bg-app: #f7f7f5;
-  --chigma-bg-canvas: #ebebeb;
+  /* Modern UI Palette - Light Mode Default */
+  --chigma-bg-app: #f9fafb;
+  --chigma-bg-canvas: #f3f4f6;
   --chigma-bg-panel: #ffffff;
   --chigma-bg-header: #ffffff;
-  --chigma-bg-hover: #f1f1f1;
-  --chigma-bg-active: #e6e6e6;
-  --chigma-bg-selected: #e8f0fe;
+  --chigma-bg-sidebar: #ffffff;
+  --chigma-bg-input: #ffffff;
+  --chigma-bg-hover: #f3f4f6;
+  --chigma-bg-active: #e5e7eb;
+  --chigma-bg-selected: #eef2ff;
 
-  --chigma-border-subtle: #f1f1f1;
-  --chigma-border: #e6e6e6;
-  --chigma-border-focus: #000000;
-  --chigma-border-selected: #0066ff;
+  --chigma-border-subtle: #f3f4f6;
+  --chigma-border: #e5e7eb;
+  --chigma-border-strong: #d1d5db;
+  --chigma-border-focus: #4f46e5;
+  --chigma-border-selected: #4f46e5;
 
-  --chigma-text-primary: #000000;
-  --chigma-text-secondary: #555555;
-  --chigma-text-tertiary: #888888;
-  --chigma-text-disabled: #bbbbbb;
+  --chigma-text-primary: #111827;
+  --chigma-text-secondary: #4b5563;
+  --chigma-text-tertiary: #6b7280;
+  --chigma-text-muted: #9ca3af;
+  --chigma-text-disabled: #d1d5db;
   --chigma-text-inverse: #ffffff;
+  --chigma-text-accent: #4f46e5;
 
-  --chigma-accent: #0066ff;
-  --chigma-accent-hover: #0052cc;
-  --chigma-accent-subtle: rgba(0, 102, 255, 0.08);
-
-  --chigma-success: #1ea64a;
+  --chigma-success: #10b981;
   --chigma-warning: #f59e0b;
   --chigma-danger: #ef4444;
+
+  /* Aliases for index.css / legacy components */
+  --bg-app: var(--chigma-bg-app);
+  --bg-canvas: var(--chigma-bg-canvas);
+  --bg-panel: var(--chigma-bg-panel);
+  --bg-panel-hover: var(--chigma-bg-hover);
+  --bg-panel-active: var(--chigma-bg-active);
+  --bg-input: var(--chigma-bg-input);
+  --border-subtle: var(--chigma-border-subtle);
+  --border-strong: var(--chigma-border-strong);
+  --border-focus: var(--chigma-border-focus);
+  --text-primary: var(--chigma-text-primary);
+  --text-secondary: var(--chigma-text-secondary);
+  --text-muted: var(--chigma-text-muted);
+  --accent-primary: var(--chigma-accent);
+  --accent-hover: var(--chigma-accent-hover);
+  --accent-danger: var(--chigma-danger);
 
   /* Typography */
   --chigma-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --chigma-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-family: var(--chigma-font-family);
 
   /* Border Radii */
-  --chigma-radius-xs: 2px;
+  --chigma-radius-xs: 4px;
   --chigma-radius-sm: 6px;
   --chigma-radius-md: 8px;
-  --chigma-radius-lg: 16px;
-  --chigma-radius-xl: 24px;
-  --chigma-radius-pill: 50px;
+  --chigma-radius-lg: 12px;
+  --chigma-radius-xl: 16px;
+  --chigma-radius-2xl: 20px;
+  --chigma-radius-pill: 9999px;
   --chigma-radius-full: 9999px;
 
+  --radius-sm: var(--chigma-radius-sm);
+  --radius-md: var(--chigma-radius-md);
+  --radius-lg: var(--chigma-radius-lg);
+
   /* Shadows */
-  --chigma-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --chigma-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --chigma-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --chigma-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
-  --chigma-shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.16);
+  --chigma-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --chigma-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --chigma-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --chigma-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --chigma-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --chigma-shadow-floating: 0 12px 30px -4px rgba(16, 24, 40, 0.12), 0 4px 10px -2px rgba(16, 24, 40, 0.06);
 
   /* Layout dimensions */
   --chigma-header-height: 48px;
-  --chigma-sidebar-width: 250px;
+  --chigma-sidebar-width: 240px;
   --chigma-properties-width: 280px;
   --chigma-statusbar-height: 28px;
-  --chigma-tool-strip-width: 44px;
+  --chigma-tool-strip-width: 48px;
+}
+
+/* Dark Mode Tokens */
+[data-theme="dark"], .dark-theme {
+  --chigma-primary: #ffffff;
+  --chigma-on-primary: #000000;
+  --chigma-ink: #f9fafb;
+  --chigma-canvas: #121214;
+  --chigma-inverse-canvas: #ffffff;
+  --chigma-inverse-ink: #111827;
+  --chigma-hairline: #27272a;
+  --chigma-hairline-soft: #1e1e22;
+  --chigma-surface-soft: #18181b;
+
+  --chigma-bg-app: #09090b;
+  --chigma-bg-canvas: #18181b;
+  --chigma-bg-panel: #121214;
+  --chigma-bg-header: #121214;
+  --chigma-bg-sidebar: #121214;
+  --chigma-bg-input: #18181b;
+  --chigma-bg-hover: #27272a;
+  --chigma-bg-active: #3f3f46;
+  --chigma-bg-selected: rgba(79, 70, 229, 0.2);
+
+  --chigma-border-subtle: #27272a;
+  --chigma-border: #27272a;
+  --chigma-border-strong: #3f3f46;
+  --chigma-border-focus: #6366f1;
+  --chigma-border-selected: #6366f1;
+
+  --chigma-text-primary: #f9fafb;
+  --chigma-text-secondary: #d1d5db;
+  --chigma-text-tertiary: #9ca3af;
+  --chigma-text-muted: #6b7280;
+  --chigma-text-disabled: #4b5563;
+  --chigma-text-inverse: #111827;
+  --chigma-text-accent: #818cf8;
+
+  --bg-app: var(--chigma-bg-app);
+  --bg-canvas: var(--chigma-bg-canvas);
+  --bg-panel: var(--chigma-bg-panel);
+  --bg-panel-hover: var(--chigma-bg-hover);
+  --bg-panel-active: var(--chigma-bg-active);
+  --bg-input: var(--chigma-bg-input);
+  --border-subtle: var(--chigma-border-subtle);
+  --border-strong: var(--chigma-border-strong);
+  --border-focus: var(--chigma-border-focus);
+  --text-primary: var(--chigma-text-primary);
+  --text-secondary: var(--chigma-text-secondary);
+  --text-muted: var(--chigma-text-muted);
 }
