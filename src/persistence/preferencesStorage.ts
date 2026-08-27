@@ -9,7 +9,7 @@ export interface AppPreferences {
   gridSize: number;
   snapToGrid: boolean;
   snapToObjects: boolean;
-  leftSidebarTab: 'layers' | 'components';
+  leftSidebarTab: 'layers' | 'components' | 'assets' | 'variables' | 'decisionLog';
 }
 
 const DEFAULT_PREFERENCES: AppPreferences = {

@@ -30,6 +30,8 @@ export function setupKeyboardShortcuts(): () => void {
       setShowRulers,
       isCommandPaletteOpen,
       setCommandPaletteOpen,
+      isQuickInsertOpen,
+      setQuickInsertOpen,
       isCodeExportModalOpen,
       setCodeExportModalOpen,
       isPrototypeMode,
@@ -38,6 +40,10 @@ export function setupKeyboardShortcuts(): () => void {
       setIconPickerOpen,
       isDesignSystemModalOpen,
       setDesignSystemModalOpen,
+      isAiPanelOpen,
+      setAiPanelOpen,
+      isLinterModalOpen,
+      setLinterModalOpen,
       lastDuplicateOffset,
       setLastDuplicateOffset
     } = useEditorStore.getState();
@@ -99,21 +105,42 @@ export function setupKeyboardShortcuts(): () => void {
 
     if (isEditingText) return;
 
-    // 5. Open Design System Panel: Shift+D
+    // 5. Quick Insert Component: /
+    if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      setQuickInsertOpen(!isQuickInsertOpen);
+      return;
+    }
+
+    // 6. Open AI Assistant: Shift+A
+    if (e.shiftKey && e.key.toLowerCase() === 'a' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      setAiPanelOpen(!isAiPanelOpen);
+      return;
+    }
+
+    // 7. Open Design Health / Linter: Shift+L
+    if (e.shiftKey && e.key.toLowerCase() === 'l' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      setLinterModalOpen(!isLinterModalOpen);
+      return;
+    }
+
+    // 8. Open Design System Panel: Shift+D
     if (e.shiftKey && e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       setDesignSystemModalOpen(!isDesignSystemModalOpen);
       return;
     }
 
-    // 6. Open Vector Icon Library: Shift+I
+    // 9. Open Vector Icon Library: Shift+I
     if (e.shiftKey && e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       setIconPickerOpen(!isIconPickerOpen);
       return;
     }
 
-    // 7. Arrow Key Nudge (1px normal, 8px with Shift)
+    // 10. Arrow Key Nudge (1px normal, 8px with Shift)
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && selectedIds.length > 0) {
       e.preventDefault();
       const step = e.shiftKey ? 8 : 1;
@@ -138,7 +165,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 8. Undo / Redo
+    // 11. Undo / Redo
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       if (e.shiftKey) {
@@ -155,7 +182,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 9. Clipboard Operations
+    // 12. Clipboard Operations
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
       e.preventDefault();
       if (selectedIds.length > 0) copy(selectedIds);
@@ -189,7 +216,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 10. Grouping & Ungrouping
+    // 13. Grouping & Ungrouping
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
       e.preventDefault();
       if (e.shiftKey) {
@@ -208,7 +235,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 11. Select All
+    // 14. Select All
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
       e.preventDefault();
       const page = getActivePage();
@@ -218,7 +245,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 12. Delete
+    // 15. Delete
     if (e.key === 'Delete' || e.key === 'Backspace') {
       if (selectedIds.length > 0) {
         e.preventDefault();
@@ -228,14 +255,14 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 13. Escape -> Deselect
+    // 16. Escape -> Deselect
     if (e.key === 'Escape') {
       deselectAll();
       setActiveTool('select');
       return;
     }
 
-    // 14. Zoom Shortcuts
+    // 17. Zoom Shortcuts
     if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
       e.preventDefault();
       zoomIn();
@@ -254,7 +281,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 15. Toggle Grid & Rulers
+    // 18. Toggle Grid & Rulers
     if ((e.ctrlKey || e.metaKey) && (e.key === "'" || e.key === '"')) {
       e.preventDefault();
       setShowGrid(!showGrid);
@@ -267,7 +294,7 @@ export function setupKeyboardShortcuts(): () => void {
       return;
     }
 
-    // 16. Tool Switch Shortcuts (Single Key)
+    // 19. Tool Switch Shortcuts (Single Key)
     if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
       switch (e.key.toLowerCase()) {
         case 'v':

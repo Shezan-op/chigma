@@ -80,17 +80,27 @@ export interface EditorState {
   lastDuplicateOffset: { x: number; y: number } | null;
   setLastDuplicateOffset: (offset: { x: number; y: number } | null) => void;
 
+  // Mode Switching
+  editorMode: 'design' | 'dev' | 'prototype';
+  setEditorMode: (mode: 'design' | 'dev' | 'prototype') => void;
+
   // UI Panels
-  leftSidebarTab: 'layers' | 'components';
-  setLeftSidebarTab: (tab: 'layers' | 'components') => void;
+  leftSidebarTab: 'layers' | 'components' | 'assets' | 'variables' | 'decisionLog';
+  setLeftSidebarTab: (tab: 'layers' | 'components' | 'assets' | 'variables' | 'decisionLog') => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   propertiesCollapsed: boolean;
   setPropertiesCollapsed: (collapsed: boolean) => void;
 
+  // AI Assistant Panel
+  isAiPanelOpen: boolean;
+  setAiPanelOpen: (open: boolean) => void;
+
   // Modals, Palettes & Tools
   isCommandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
+  isQuickInsertOpen: boolean;
+  setQuickInsertOpen: (open: boolean) => void;
   isCodeExportModalOpen: boolean;
   setCodeExportModalOpen: (open: boolean) => void;
   isPrototypeMode: boolean;
@@ -103,6 +113,14 @@ export interface EditorState {
   setAccessibilityModalOpen: (open: boolean) => void;
   isResponsivePreviewOpen: boolean;
   setResponsivePreviewOpen: (open: boolean) => void;
+  isLinterModalOpen: boolean;
+  setLinterModalOpen: (open: boolean) => void;
+  isDecisionLogModalOpen: boolean;
+  setDecisionLogModalOpen: (open: boolean) => void;
+  isSnapshotsModalOpen: boolean;
+  setSnapshotsModalOpen: (open: boolean) => void;
+  isMcpModalOpen: boolean;
+  setMcpModalOpen: (open: boolean) => void;
 
   // Active Drawing Shape preview
   drawingShapeType: NodeType | null;
@@ -228,6 +246,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   lastDuplicateOffset: null,
   setLastDuplicateOffset: (offset) => set({ lastDuplicateOffset: offset }),
 
+  editorMode: 'design',
+  setEditorMode: (mode) => set({ editorMode: mode }),
+
   leftSidebarTab: getPreference('leftSidebarTab', 'layers'),
   setLeftSidebarTab: (tab) => {
     set({ leftSidebarTab: tab });
@@ -239,8 +260,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   propertiesCollapsed: false,
   setPropertiesCollapsed: (collapsed) => set({ propertiesCollapsed: collapsed }),
 
+  isAiPanelOpen: false,
+  setAiPanelOpen: (open) => set({ isAiPanelOpen: open }),
+
   isCommandPaletteOpen: false,
   setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+
+  isQuickInsertOpen: false,
+  setQuickInsertOpen: (open) => set({ isQuickInsertOpen: open }),
 
   isCodeExportModalOpen: false,
   setCodeExportModalOpen: (open) => set({ isCodeExportModalOpen: open }),
@@ -259,6 +286,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   isResponsivePreviewOpen: false,
   setResponsivePreviewOpen: (open) => set({ isResponsivePreviewOpen: open }),
+
+  isLinterModalOpen: false,
+  setLinterModalOpen: (open) => set({ isLinterModalOpen: open }),
+
+  isDecisionLogModalOpen: false,
+  setDecisionLogModalOpen: (open) => set({ isDecisionLogModalOpen: open }),
+
+  isSnapshotsModalOpen: false,
+  setSnapshotsModalOpen: (open) => set({ isSnapshotsModalOpen: open }),
+
+  isMcpModalOpen: false,
+  setMcpModalOpen: (open) => set({ isMcpModalOpen: open }),
 
   drawingShapeType: null,
   setDrawingShapeType: (type) => set({ drawingShapeType: type })

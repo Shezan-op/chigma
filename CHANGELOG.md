@@ -6,7 +6,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [2.0.0] - 2026-08-27
+## [2.1.0] - 2026-08-27 (Phase 2 Master Architecture)
+
+### 🤖 AI Co-Designer & Agentic Workflows
+- **Model Provider Abstraction (`src/engine/ai/aiProvider.ts`)**:
+  - Deterministic `RuleBasedOfflineAiProvider` generating full SaaS analytics dashboards, high-converting marketing landing pages, and smart spacing alignments without internet access.
+  - Pluggable provider interface ready for local Ollama (`http://localhost:11434`), OpenAI, and Anthropic endpoints.
+- **AI Context Builder & Orchestrator (`src/engine/ai/aiContextBuilder.ts`, `aiOrchestrator.ts`)**:
+  - Converts canvas document graphs into token-efficient semantic trees.
+  - Step-by-step execution planner with progress animations, before/after diff summary, and 1-click **Rollback / Undo**.
+- **Chigma AI Assistant Sidebar (`AiAgentPanel.tsx` / `Shift+A`)**:
+  - Embedded AI assistant with quick prompts, live execution stream, and direct canvas insertion.
+
+### 🌐 Model Context Protocol (MCP) Server
+- **Standard 2026-07-28 JSON-RPC Engine (`src/mcp/mcpServer.ts`, `mcpTools.ts`, `mcpResources.ts`, `mcpPrompts.ts`)**:
+  - Exposes 8+ core design tools: `get_project`, `get_page`, `get_node`, `create_node`, `modify_node`, `apply_auto_layout`, `inspect_design`, `export_code`.
+  - Exposes design resources (`chigma://project/current`, `chigma://design-system`, `chigma://components`) and prompts (`design-review`, `create-saas-dashboard`, `make-responsive`).
+  - Interactive **MCP Status & Debugger Modal (`McpModal.tsx`)** to test JSON-RPC calls live in the browser and copy configuration for Claude Code, Cursor, and Codex.
+
+### ⚡ Dev Mode & Multi-Framework Code Handoff
+- **Dev Mode / Handoff Inspector (`DevModePanel.tsx`)**:
+  - 3-segmented mode switch in TopToolbar: **Design** | **Dev Mode** | **Prototype**.
+  - Live Box-model metrics (width, height, coordinates, radii) and CSS custom property view.
+  - Multi-framework code generators in `exportMultiFramework.ts`:
+    - **React + TypeScript (Tailwind CSS)**
+    - **Next.js App Router Client Component (`'use client'`)**
+    - **CSS Stylesheet with Variables**
+  - 1-click "Copy Code" button.
+
+### 🛡️ Design Health Linter & Quality Inspector
+- **Design Quality & Linter Engine (`designLinter.ts`, `DesignLinterModal.tsx` / `Shift+L`)**:
+  - Computes composite **Design Health Score (0-100%)** with category breakdown (Spacing, Tokens, Accessibility, Consistency).
+  - Detects off-grid coordinates, unlinked magic colors vs design tokens, and undersized touch targets (<44×44px).
+  - 1-click **Auto-Align Spacing (8px)** and per-issue auto-fix actions.
+
+### 🕹️ Advanced Prototyping 2.0 & Runtime State Machine
+- **Interactive Prototyping State Machine (`usePrototypeSessionStore.ts`)**:
+  - Isolated runtime managing session variables (`cartCount`, active tabs, flags), conditional branching (`==`, `!=`, `>`, `<`), and overlay stacks (`modal`, `drawer`, `dropdown`, `bottomSheet`).
+  - Interactive **Prototype Debugger HUD** showing live variable inspection and real-time interaction event stream in `PrototypePlayerModal.tsx`.
+
+### 🗂️ Version History, Decision Log & Workspace Backups
+- **Project Snapshots & Version History (`SnapshotsModal.tsx`)**: Named checkpoints with 1-click restore.
+- **Design Decision Log (`DecisionLogModal.tsx`)**: Track architectural rationales and design intent.
+- **Workspace Backup & Storage Monitor (`workspaceBackup.ts`)**: Export/import all workspace projects in one `.chigma-workspace.json` file.
+- **Quick Insert Component Palette (`QuickInsertModal.tsx` / `/`)**: Fast keyboard-accessible component palette.
+
 
 ### ❖ Master Components & Instance Architecture
 - **Master Component Engine (`src/engine/components/componentEngine.ts`)**:

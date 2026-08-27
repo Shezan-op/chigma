@@ -20,11 +20,32 @@ import type {
   SidebarItem
 } from './wireframes';
 
+export interface OverlayConfig {
+  position: 'center' | 'top' | 'bottom' | 'drawer-left' | 'drawer-right' | 'dropdown';
+  backdrop?: boolean;
+  closeOnBackdropClick?: boolean;
+  animation?: 'fade' | 'slide' | 'none';
+}
+
 export interface InteractionLink {
-  trigger: 'click' | 'hover';
-  action: 'navigate' | 'openModal' | 'back' | 'url';
+  trigger: 'click' | 'doubleClick' | 'hover' | 'mouseDown' | 'mouseUp' | 'afterDelay' | 'pageLoad' | 'variableChange';
+  action: 'navigate' | 'openModal' | 'openOverlay' | 'closeOverlay' | 'swapComponentState' | 'setVariable' | 'toggleVariable' | 'incrementVariable' | 'decrementVariable' | 'scrollTo' | 'back' | 'url';
   targetPageId?: string;
+  targetNodeId?: string;
   targetUrl?: string;
+  targetState?: string;
+  overlayConfig?: OverlayConfig;
+  variableConfig?: {
+    variableId: string;
+    value?: any;
+    delta?: number;
+  };
+  condition?: {
+    variableId: string;
+    operator: '==' | '!=' | '>' | '<' | '>=' | '<=';
+    value: any;
+  };
+  delay?: number;
 }
 
 export interface AutoLayoutConfig {
@@ -52,6 +73,20 @@ export interface SizingConstraints {
   vertical: 'fixed' | 'hug' | 'fill';
 }
 
+export interface NodeAnnotations {
+  intent?: string;
+  notes?: string;
+  developerNotes?: string;
+  accessibilityRole?: string;
+  ariaLabel?: string;
+}
+
+export interface NodeCodeMapping {
+  componentName?: string;
+  importPath?: string;
+  framework?: 'react' | 'html' | 'nextjs' | 'vue';
+}
+
 export interface BaseNode {
   id: string;
   name: string;
@@ -65,6 +100,7 @@ export interface BaseNode {
   locked: boolean;
   parentId?: string; // If inside a frame, group, or boolean
   interaction?: InteractionLink; // Prototyping navigation link
+  interactions?: InteractionLink[]; // Multiple prototype links
 
   // Visual Styles
   fill?: string;
@@ -98,9 +134,13 @@ export interface BaseNode {
   maskMode?: 'alpha' | 'vector';
   booleanOp?: 'union' | 'subtract' | 'intersect' | 'exclude';
 
+  // Annotations & Code Mapping
+  annotations?: NodeAnnotations;
+  codeMapping?: NodeCodeMapping;
+
   // Export metadata
   exportSettings?: {
-    format: 'png' | 'svg' | 'html';
+    format: 'png' | 'svg' | 'html' | 'react';
     scale?: number;
   };
 }

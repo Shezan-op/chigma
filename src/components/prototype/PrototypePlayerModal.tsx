@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useEditorStore } from '../../store/useEditorStore';
+import { usePrototypeSessionStore } from '../../store/usePrototypeSessionStore';
 import { NodeRenderer } from '../../engine/renderer/NodeRenderer';
 import {
   X,
@@ -10,7 +11,9 @@ import {
   Laptop,
   Monitor,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bug,
+  Activity
 } from 'lucide-react';
 
 type DeviceFrame = 'fluid' | 'desktop' | 'iphone' | 'ipad';
@@ -19,35 +22,50 @@ export const PrototypePlayerModal: React.FC = () => {
   const { isPrototypeMode, setPrototypeMode } = useEditorStore();
   const { document: currentDoc } = useDocumentStore();
 
-  const [activePageIndex, setActivePageIndex] = useState(0);
+  const {
+    activeScreenId,
+    variables,
+    activeOverlays,
+    interactionLogs,
+    isDebuggerOpen,
+    initSession,
+    executeInteraction,
+    setVariableValue,
+    navigateBack,
+    navigateToScreen,
+    closeOverlay,
+    resetSession,
+    setDebuggerOpen
+  } = usePrototypeSessionStore();
+
   const [deviceFrame, setDeviceFrame] = useState<DeviceFrame>('desktop');
   const [showHotspotFlash, setShowHotspotFlash] = useState(false);
 
+  const pages = currentDoc.pages || [];
+
+  // Initialize session with the first page if not initialized
+  useEffect(() => {
+    if (isPrototypeMode && pages.length > 0) {
+      const startId = activeScreenId || pages[0].id;
+      initSession(startId);
+    }
+  }, [isPrototypeMode]);
+
   if (!isPrototypeMode) return null;
 
-  const pages = currentDoc.pages || [];
-  const currentPage = pages[activePageIndex] || pages[0];
+  const currentPage = pages.find((p) => p.id === activeScreenId) || pages[0];
+  const currentPageIndex = pages.findIndex((p) => p.id === currentPage?.id);
 
-  const handleNodeClick = (nodeId: string) => {
+  const handleNodeInteraction = (nodeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!currentPage) return;
     const node = currentPage.children.find((n) => n.id === nodeId);
-    if (!node || !node.interaction) {
-      // Trigger hotspot flash to hint clickable areas
+
+    if (node?.interaction) {
+      executeInteraction(node.interaction, nodeId);
+    } else {
       setShowHotspotFlash(true);
       setTimeout(() => setShowHotspotFlash(false), 400);
-      return;
-    }
-
-    const { action, targetPageId, targetUrl } = node.interaction;
-    if (action === 'navigate' && targetPageId) {
-      const targetIdx = pages.findIndex((p) => p.id === targetPageId);
-      if (targetIdx !== -1) {
-        setActivePageIndex(targetIdx);
-      }
-    } else if (action === 'back') {
-      setActivePageIndex((prev) => Math.max(0, prev - 1));
-    } else if (action === 'url' && targetUrl) {
-      window.open(targetUrl, '_blank');
     }
   };
 
@@ -69,262 +87,296 @@ export const PrototypePlayerModal: React.FC = () => {
 
   return (
     <div
-      className="chigma-prototype-player-root"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: '#0F0F11',
-        zIndex: 200,
-        display: 'flex',
-        flexDirection: 'column',
-        userSelect: 'none'
-      }}
+      className="chigma-prototype-player-root fixed inset-0 z-50 flex flex-col bg-[#0F0F11] text-white select-none animate-fadeIn"
     >
       {/* Top Floating Control Bar */}
-      <header
-        style={{
-          height: 52,
-          backgroundColor: '#18181B',
-          borderBottom: '1px solid #27272A',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 20px',
-          color: '#FFFFFF'
-        }}
-      >
+      <header className="h-13 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-5">
         {/* Left: Project title & Page indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10B981' }} />
-            <span style={{ fontSize: 13, fontWeight: 700 }}>{currentDoc.name}</span>
+        <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold">{currentDoc.name}</span>
           </div>
 
-          <div style={{ height: 14, width: 1, backgroundColor: '#3F3F46' }} />
+          <div className="h-3.5 w-px bg-zinc-700" />
 
           {/* Page Dropdown / Navigation */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div className="flex items-center gap-1.5">
             <button
-              className="btn-icon xs"
-              onClick={() => setActivePageIndex((p) => Math.max(0, p - 1))}
-              disabled={activePageIndex === 0}
-              style={{ color: '#A1A1AA' }}
+              onClick={navigateBack}
+              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-zinc-800 transition"
+              title="Back"
             >
-              <ChevronLeft size={14} />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <select
-              value={activePageIndex}
-              onChange={(e) => setActivePageIndex(parseInt(e.target.value))}
-              style={{
-                backgroundColor: '#27272A',
-                color: '#FFFFFF',
-                border: '1px solid #3F3F46',
-                borderRadius: '50px',
-                padding: '3px 12px',
-                fontSize: '12px',
-                outline: 'none'
-              }}
+              value={currentPage?.id || ''}
+              onChange={(e) => navigateToScreen(e.target.value)}
+              className="bg-zinc-800 text-white border border-zinc-700 rounded-full px-3 py-1 text-xs outline-none cursor-pointer"
             >
               {pages.map((p, idx) => (
-                <option key={p.id} value={idx}>
+                <option key={p.id} value={p.id}>
                   {p.name} ({idx + 1}/{pages.length})
                 </option>
               ))}
             </select>
             <button
-              className="btn-icon xs"
-              onClick={() => setActivePageIndex((p) => Math.min(pages.length - 1, p + 1))}
-              disabled={activePageIndex === pages.length - 1}
-              style={{ color: '#A1A1AA' }}
+              onClick={() => {
+                const nextIdx = Math.min(pages.length - 1, currentPageIndex + 1);
+                navigateToScreen(pages[nextIdx].id);
+              }}
+              disabled={currentPageIndex === pages.length - 1}
+              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-zinc-800 transition disabled:opacity-30"
+              title="Next Screen"
             >
-              <ChevronRight size={14} />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Center: Device Frame Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, backgroundColor: '#27272A', padding: 3, borderRadius: '50px' }}>
+        <div className="flex items-center gap-1 bg-zinc-800 p-1 rounded-full border border-zinc-700">
           <button
             onClick={() => setDeviceFrame('desktop')}
-            style={{
-              background: deviceFrame === 'desktop' ? '#000000' : 'transparent',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '50px',
-              padding: '4px 12px',
-              fontSize: '11px',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              cursor: 'pointer'
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition ${
+              deviceFrame === 'desktop' ? 'bg-black text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
           >
-            <Laptop size={13} /> Desktop
+            <Laptop className="w-3.5 h-3.5" /> Desktop
           </button>
           <button
             onClick={() => setDeviceFrame('ipad')}
-            style={{
-              background: deviceFrame === 'ipad' ? '#000000' : 'transparent',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '50px',
-              padding: '4px 12px',
-              fontSize: '11px',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              cursor: 'pointer'
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition ${
+              deviceFrame === 'ipad' ? 'bg-black text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
           >
-            <Tablet size={13} /> Tablet
+            <Tablet className="w-3.5 h-3.5" /> Tablet
           </button>
           <button
             onClick={() => setDeviceFrame('iphone')}
-            style={{
-              background: deviceFrame === 'iphone' ? '#000000' : 'transparent',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '50px',
-              padding: '4px 12px',
-              fontSize: '11px',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              cursor: 'pointer'
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition ${
+              deviceFrame === 'iphone' ? 'bg-black text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
           >
-            <Smartphone size={13} /> Mobile
+            <Smartphone className="w-3.5 h-3.5" /> Mobile
           </button>
           <button
             onClick={() => setDeviceFrame('fluid')}
-            style={{
-              background: deviceFrame === 'fluid' ? '#000000' : 'transparent',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '50px',
-              padding: '4px 12px',
-              fontSize: '11px',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              cursor: 'pointer'
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition ${
+              deviceFrame === 'fluid' ? 'bg-black text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
           >
-            <Monitor size={13} /> Fullscreen
+            <Monitor className="w-3.5 h-3.5" /> Fullscreen
           </button>
         </div>
 
-        {/* Right: Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Right: Debugger, Restart, Exit */}
+        <div className="flex items-center gap-2.5">
           <button
-            onClick={() => setActivePageIndex(0)}
-            title="Restart Prototype"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#A1A1AA',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              fontSize: '12px'
-            }}
+            onClick={() => setDebuggerOpen(!isDebuggerOpen)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
+              isDebuggerOpen
+                ? 'bg-purple-600 border-purple-500 text-white'
+                : 'border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-800'
+            }`}
+            title="Toggle Prototype Debugger HUD"
           >
-            <RotateCcw size={14} /> Restart
+            <Bug className="w-3.5 h-3.5" /> Debugger
           </button>
+
+          <button
+            onClick={() => resetSession(pages[0]?.id || '')}
+            title="Restart Prototype"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-zinc-400 hover:text-white rounded hover:bg-zinc-800 transition"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Restart
+          </button>
+
           <button
             onClick={() => setPrototypeMode(false)}
-            style={{
-              backgroundColor: '#FFFFFF',
-              color: '#000000',
-              border: 'none',
-              borderRadius: '50px',
-              padding: '6px 14px',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6
-            }}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white text-black hover:opacity-90 transition shadow-sm"
           >
-            <X size={14} /> Exit (ESC)
+            <X className="w-3.5 h-3.5" /> Exit (ESC)
           </button>
         </div>
       </header>
 
       {/* Main Presentation Viewport */}
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'auto',
-          padding: '24px',
-          background: 'radial-gradient(circle at center, #1E1E24 0%, #0F0F11 100%)'
-        }}
-        onClick={() => {
-          setShowHotspotFlash(true);
-          setTimeout(() => setShowHotspotFlash(false), 400);
-        }}
-      >
-        <div
-          style={{
-            width: dims.width,
-            height: dims.height,
-            maxWidth: '100%',
-            maxHeight: '100%',
-            backgroundColor: currentPage?.background || '#FFFFFF',
-            borderRadius: dims.radius,
-            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08)',
-            overflow: 'auto',
-            position: 'relative'
+      <div className="flex-1 flex overflow-hidden relative">
+        <main
+          className="flex-1 flex items-center justify-center p-6 overflow-auto bg-[radial-gradient(circle_at_center,#1E1E24_0%,#0F0F11_100%)]"
+          onClick={() => {
+            setShowHotspotFlash(true);
+            setTimeout(() => setShowHotspotFlash(false), 400);
           }}
-          onClick={(e) => e.stopPropagation()}
         >
-          {/* SVG Vector Render of Page */}
-          <svg
-            width="100%"
-            height="100%"
-            style={{ minWidth: 1200, minHeight: 900, display: 'block' }}
+          <div
+            style={{
+              width: dims.width,
+              height: dims.height,
+              backgroundColor: currentPage?.background || '#FFFFFF',
+              borderRadius: dims.radius
+            }}
+            className="max-w-full max-h-full shadow-[0_25px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] overflow-auto relative"
+            onClick={(e) => e.stopPropagation()}
           >
-            {currentPage &&
-              currentPage.children
-                .filter((n) => n.visible)
-                .map((node) => {
-                  const hasLink = Boolean(node.interaction);
-                  return (
-                    <g
-                      key={node.id}
-                      onClick={() => handleNodeClick(node.id)}
-                      style={{ cursor: hasLink ? 'pointer' : 'default' }}
-                    >
-                      <NodeRenderer node={node} />
-                      {/* Hotspot Flash Ring */}
-                      {hasLink && showHotspotFlash && (
-                        <rect
-                          x={node.x - 2}
-                          y={node.y - 2}
-                          width={node.width + 4}
-                          height={node.height + 4}
-                          fill="rgba(0, 102, 255, 0.15)"
-                          stroke="#0066FF"
-                          strokeWidth={2}
-                          rx={4}
-                          style={{ pointerEvents: 'none', animation: 'pulse 0.4s ease' }}
+            {/* SVG Canvas Render */}
+            <svg
+              width="100%"
+              height="100%"
+              style={{ minWidth: 1200, minHeight: 900, display: 'block' }}
+            >
+              {currentPage &&
+                currentPage.children
+                  .filter((n) => n.visible)
+                  .map((node) => {
+                    const hasLink = Boolean(node.interaction);
+                    return (
+                      <g
+                        key={node.id}
+                        onClick={(e) => handleNodeInteraction(node.id, e)}
+                        style={{ cursor: hasLink ? 'pointer' : 'default' }}
+                      >
+                        <NodeRenderer node={node} />
+
+                        {/* Hotspot Flash Ring */}
+                        {hasLink && showHotspotFlash && (
+                          <rect
+                            x={node.x - 2}
+                            y={node.y - 2}
+                            width={node.width + 4}
+                            height={node.height + 4}
+                            fill="rgba(0, 102, 255, 0.15)"
+                            stroke="#0066FF"
+                            strokeWidth={2}
+                            rx={4}
+                            style={{ pointerEvents: 'none' }}
+                          />
+                        )}
+                      </g>
+                    );
+                  })}
+            </svg>
+
+            {/* Overlays Render (Modals, Drawers, Dropdowns) */}
+            {activeOverlays.map((overlay) => {
+              const targetP = pages.find((p) => p.id === overlay.targetPageId);
+              return (
+                <div
+                  key={overlay.id}
+                  className={`absolute inset-0 z-40 flex items-center justify-center ${
+                    overlay.config.backdrop !== false ? 'bg-black/50 backdrop-blur-sm' : ''
+                  }`}
+                  onClick={() => {
+                    if (overlay.config.closeOnBackdropClick !== false) {
+                      closeOverlay(overlay.id);
+                    }
+                  }}
+                >
+                  <div
+                    className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-6 border border-zinc-200 dark:border-zinc-800 max-w-lg animate-scaleUp"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                        {targetP?.name || 'Overlay Dialog'}
+                      </h3>
+                      <button
+                        onClick={() => closeOverlay(overlay.id)}
+                        className="p-1 text-zinc-400 hover:text-zinc-600 rounded"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {targetP ? (
+                      <svg width={400} height={300}>
+                        {targetP.children.map((n) => (
+                          <NodeRenderer key={n.id} node={n} />
+                        ))}
+                      </svg>
+                    ) : (
+                      <div className="text-xs text-zinc-500">Overlay content slot</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </main>
+
+        {/* Prototype Debugger HUD Sidebar */}
+        {isDebuggerOpen && (
+          <aside className="w-80 bg-zinc-900 border-l border-zinc-800 flex flex-col h-full animate-slideLeft">
+            <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bug className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-bold text-white">Prototype State Debugger</span>
+              </div>
+              <button
+                onClick={() => setDebuggerOpen(false)}
+                className="text-zinc-500 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Current State & Variables */}
+            <div className="p-4 border-b border-zinc-800 space-y-3">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-1">Active Screen</span>
+                <span className="text-xs font-mono text-emerald-400">{currentPage?.name}</span>
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-1">Session Variables</span>
+                {Object.keys(variables).length === 0 ? (
+                  <span className="text-xs text-zinc-500 italic">No variables set</span>
+                ) : (
+                  <div className="space-y-1">
+                    {Object.entries(variables).map(([k, v]) => (
+                      <div
+                        key={k}
+                        className="flex items-center justify-between text-xs font-mono bg-zinc-800/80 px-2 py-1 rounded"
+                      >
+                        <span className="text-purple-300">{k}</span>
+                        <input
+                          type="text"
+                          value={String(v)}
+                          onChange={(e) => setVariableValue(k, e.target.value)}
+                          className="w-20 bg-zinc-950 px-1 text-right text-white rounded border border-zinc-700 outline-none"
                         />
-                      )}
-                    </g>
-                  );
-                })}
-          </svg>
-        </div>
-      </main>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Interaction Event Stream */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-2 flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-blue-400" /> Event Activity Log
+              </span>
+              <div className="space-y-2">
+                {interactionLogs.slice(0, 20).map((log) => (
+                  <div key={log.id} className="p-2 bg-zinc-800/50 rounded-lg text-[11px] border border-zinc-800">
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="font-semibold text-white">{log.trigger}</span>
+                      <span className="text-[9px] font-mono text-zinc-500">
+                        {new Date(log.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <div className="text-zinc-400 mt-0.5 font-mono text-[10px]">
+                      action: <span className="text-emerald-400">{log.action}</span>
+                    </div>
+                    {log.details && <div className="text-zinc-500 text-[10px] mt-0.5">{log.details}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
+        )}
+      </div>
     </div>
   );
 };

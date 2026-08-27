@@ -33,13 +33,20 @@ import {
   Component,
   AlignVerticalSpaceAround,
   Sun,
-  Moon
+  Moon,
+  Sparkles,
+  Server,
+  FileText,
+  History,
+  ShieldAlert,
+  Cpu,
+  Plus
 } from 'lucide-react';
 
 interface PaletteCommand {
   id: string;
   title: string;
-  category: 'Insert' | 'Tools' | 'Actions' | 'View' | 'Design System';
+  category: 'Insert' | 'Tools' | 'Actions' | 'View' | 'Design System' | 'AI & Dev';
   icon: React.ReactNode;
   shortcut?: string;
   action: () => void;
@@ -59,11 +66,20 @@ export const CommandPaletteModal: React.FC = () => {
     setShowRulers,
     selectedIds,
     setSelectedIds,
+    editorMode,
+    setEditorMode,
+    setAiPanelOpen,
+    setQuickInsertOpen,
     setCodeExportModalOpen,
+    setPrototypeMode,
     setIconPickerOpen,
     setDesignSystemModalOpen,
     setAccessibilityModalOpen,
-    setResponsivePreviewOpen
+    setResponsivePreviewOpen,
+    setLinterModalOpen,
+    setDecisionLogModalOpen,
+    setSnapshotsModalOpen,
+    setMcpModalOpen
   } = useEditorStore();
 
   const {
@@ -102,13 +118,100 @@ export const CommandPaletteModal: React.FC = () => {
   };
 
   const commands: PaletteCommand[] = [
+    // Presentation
+    {
+      id: 'action_present_prototype',
+      title: 'Present Interactive Prototype',
+      category: 'View',
+      icon: <Maximize size={15} color="#10B981" />,
+      shortcut: 'F5',
+      action: () => {
+        setCommandPaletteOpen(false);
+        setPrototypeMode(true);
+      }
+    },
+    // AI & Dev Mode
+    {
+      id: 'action_ai_designer',
+      title: 'Open Chigma AI Co-Designer',
+      category: 'AI & Dev',
+      icon: <Sparkles size={15} color="#8B5CF6" />,
+      shortcut: 'Shift+A',
+      action: () => {
+        setCommandPaletteOpen(false);
+        setAiPanelOpen(true);
+      }
+    },
+    {
+      id: 'action_quick_insert',
+      title: 'Quick Insert Component Palette...',
+      category: 'Insert',
+      icon: <Plus size={15} color="#0066FF" />,
+      shortcut: '/',
+      action: () => {
+        setCommandPaletteOpen(false);
+        setQuickInsertOpen(true);
+      }
+    },
+    {
+      id: 'action_dev_mode',
+      title: editorMode === 'dev' ? 'Switch to Design Mode' : 'Switch to Dev / Handoff Mode',
+      category: 'AI & Dev',
+      icon: <Cpu size={15} color="#4F46E5" />,
+      action: () => {
+        setEditorMode(editorMode === 'dev' ? 'design' : 'dev');
+        setCommandPaletteOpen(false);
+      }
+    },
+    {
+      id: 'action_linter',
+      title: 'Run Design Health & Quality Linter',
+      category: 'Actions',
+      icon: <ShieldAlert size={15} color="#EC4899" />,
+      shortcut: 'Shift+L',
+      action: () => {
+        setCommandPaletteOpen(false);
+        setLinterModalOpen(true);
+      }
+    },
+    {
+      id: 'action_snapshots',
+      title: 'Version History & Snapshots...',
+      category: 'Actions',
+      icon: <History size={15} color="#3B82F6" />,
+      action: () => {
+        setCommandPaletteOpen(false);
+        setSnapshotsModalOpen(true);
+      }
+    },
+    {
+      id: 'action_decision_log',
+      title: 'Project Design Decision Log...',
+      category: 'Design System',
+      icon: <FileText size={15} color="#9333EA" />,
+      action: () => {
+        setCommandPaletteOpen(false);
+        setDecisionLogModalOpen(true);
+      }
+    },
+    {
+      id: 'action_mcp_server',
+      title: 'Model Context Protocol (MCP) Server Status & Tools',
+      category: 'AI & Dev',
+      icon: <Server size={15} color="#10B981" />,
+      action: () => {
+        setCommandPaletteOpen(false);
+        setMcpModalOpen(true);
+      }
+    },
+
     // Design System & Advanced Tools
     {
       id: 'action_icon_picker',
       title: 'Insert Vector Icon...',
       category: 'Insert',
       icon: <Smile size={15} color="#0066FF" />,
-      shortcut: 'I',
+      shortcut: 'Shift+I',
       action: () => {
         setCommandPaletteOpen(false);
         setIconPickerOpen(true);
@@ -371,7 +474,7 @@ export const CommandPaletteModal: React.FC = () => {
     // Actions & Code Export
     {
       id: 'action_export_code',
-      title: 'Export Wireframe to HTML/CSS Code',
+      title: 'Export Wireframe to HTML/CSS/React Code',
       category: 'Actions',
       icon: <Code size={15} color="#0066FF" />,
       shortcut: 'Ctrl+Shift+C',

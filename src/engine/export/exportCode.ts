@@ -42,6 +42,23 @@ function resolveFillCss(node: ChigmaNode): string {
   return node.fill ? `background: ${node.fill};` : 'background: transparent;';
 }
 
+export function generateCssForNode(node: ChigmaNode): string {
+  const className = (node.name || 'element').toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const shadowCss = resolveBoxShadowCss(node.effects);
+  const fillCss = resolveFillCss(node);
+  const radiusCss = resolveBorderRadiusCss(node.cornerRadius);
+
+  return `.${className} {
+  width: ${Math.round(node.width)}px;
+  height: ${Math.round(node.height)}px;
+  ${fillCss}
+  ${node.stroke ? `border: ${node.strokeWidth || 1}px solid ${node.stroke};` : ''}
+  border-radius: ${radiusCss};
+  ${shadowCss}
+  ${node.opacity !== undefined && node.opacity < 1 ? `opacity: ${node.opacity};` : ''}
+}`;
+}
+
 export function generateWireframeCode(page: Page, documentName = 'Wireframe'): GeneratedCode {
   const nodes = page.children || [];
 

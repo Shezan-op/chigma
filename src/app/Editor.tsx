@@ -3,6 +3,8 @@ import { TopToolbar } from '../components/toolbar/TopToolbar';
 import { LeftSidebar } from '../components/panels/LeftSidebar';
 import { Canvas } from '../components/editor/Canvas';
 import { PropertiesPanel } from '../components/properties/PropertiesPanel';
+import { DevModePanel } from '../components/devmode/DevModePanel';
+import { AiAgentPanel } from '../components/ai/AiAgentPanel';
 import { StatusBar } from '../components/panels/StatusBar';
 import { ExportModal } from '../components/dialogs/ExportModal';
 import { ImportModal } from '../components/dialogs/ImportModal';
@@ -10,11 +12,16 @@ import { ShortcutsModal } from '../components/dialogs/ShortcutsModal';
 import { ConfirmModal } from '../components/dialogs/ConfirmModal';
 import { CodeExportModal } from '../components/dialogs/CodeExportModal';
 import { CommandPaletteModal } from '../components/dialogs/CommandPaletteModal';
+import { QuickInsertModal } from '../components/dialogs/QuickInsertModal';
 import { PrototypePlayerModal } from '../components/prototype/PrototypePlayerModal';
 import { IconPickerModal } from '../components/dialogs/IconPickerModal';
 import { DesignSystemModal } from '../components/dialogs/DesignSystemModal';
 import { AccessibilityAuditModal } from '../components/dialogs/AccessibilityAuditModal';
 import { ResponsivePreviewModal } from '../components/prototype/ResponsivePreviewModal';
+import { DesignLinterModal } from '../components/dialogs/DesignLinterModal';
+import { DecisionLogModal } from '../components/dialogs/DecisionLogModal';
+import { SnapshotsModal } from '../components/dialogs/SnapshotsModal';
+import { McpModal } from '../components/dialogs/McpModal';
 import { setupKeyboardShortcuts } from '../engine/shortcuts/keyboardHandler';
 import { useAutosave } from '../persistence/autosave';
 import { useEditorStore } from '../store/useEditorStore';
@@ -28,6 +35,7 @@ export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
   useAutosave();
 
   const {
+    editorMode,
     isIconPickerOpen,
     setIconPickerOpen,
     isDesignSystemModalOpen,
@@ -35,7 +43,15 @@ export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
     isAccessibilityModalOpen,
     setAccessibilityModalOpen,
     isResponsivePreviewOpen,
-    setResponsivePreviewOpen
+    setResponsivePreviewOpen,
+    isLinterModalOpen,
+    setLinterModalOpen,
+    isDecisionLogModalOpen,
+    setDecisionLogModalOpen,
+    isSnapshotsModalOpen,
+    setSnapshotsModalOpen,
+    isMcpModalOpen,
+    setMcpModalOpen
   } = useEditorStore();
 
   // Setup Global Keyboard Shortcuts Listener
@@ -59,8 +75,17 @@ export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
           <Canvas />
         </main>
 
-        {/* Right: Dynamic Properties Inspector */}
-        <PropertiesPanel />
+        {/* Right: Dynamic Properties Inspector or Dev Mode Handoff Panel */}
+        {editorMode === 'dev' ? (
+          <aside className="w-80 h-full">
+            <DevModePanel />
+          </aside>
+        ) : (
+          <PropertiesPanel />
+        )}
+
+        {/* AI Co-Designer Sidebar */}
+        <AiAgentPanel />
       </div>
 
       {/* 3. Bottom Status Bar */}
@@ -73,6 +98,7 @@ export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
       <ConfirmModal />
       <CodeExportModal />
       <CommandPaletteModal />
+      <QuickInsertModal />
       <PrototypePlayerModal />
 
       {/* 5. Design Engine Modals */}
@@ -91,6 +117,22 @@ export const Editor: React.FC<EditorProps> = ({ onBackToProjects }) => {
       <ResponsivePreviewModal
         isOpen={isResponsivePreviewOpen}
         onClose={() => setResponsivePreviewOpen(false)}
+      />
+      <DesignLinterModal
+        isOpen={isLinterModalOpen}
+        onClose={() => setLinterModalOpen(false)}
+      />
+      <DecisionLogModal
+        isOpen={isDecisionLogModalOpen}
+        onClose={() => setDecisionLogModalOpen(false)}
+      />
+      <SnapshotsModal
+        isOpen={isSnapshotsModalOpen}
+        onClose={() => setSnapshotsModalOpen(false)}
+      />
+      <McpModal
+        isOpen={isMcpModalOpen}
+        onClose={() => setMcpModalOpen(false)}
       />
     </div>
   );

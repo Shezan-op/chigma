@@ -41,6 +41,38 @@ export interface ComponentMaster {
   }[];
 }
 
+export interface DecisionLogEntry {
+  id: string;
+  date: number;
+  decision: string;
+  reason: string;
+  affectedAreas?: string[];
+  author?: string;
+}
+
+export interface ProjectSnapshot {
+  id: string;
+  name: string;
+  timestamp: number;
+  description?: string;
+  documentState: any; // Serialized document snapshot
+}
+
+export interface PrototypeVariable {
+  id: string;
+  name: string;
+  type: 'string' | 'number' | 'boolean';
+  defaultValue: any;
+  currentValue: any;
+}
+
+export interface PrototypeFlow {
+  id: string;
+  name: string;
+  startPageId: string;
+  description?: string;
+}
+
 export interface Page {
   id: string;
   name: string;
@@ -61,6 +93,10 @@ export interface ChigmaDocument {
   styles?: ReusableStyle[];
   components?: ComponentMaster[];
   breakpoints?: { id: string; name: string; width: number }[];
+  decisionLog?: DecisionLogEntry[];
+  snapshots?: ProjectSnapshot[];
+  prototypeVariables?: PrototypeVariable[];
+  prototypeFlows?: PrototypeFlow[];
 }
 
 export interface ProjectMetadata {
@@ -71,6 +107,8 @@ export interface ProjectMetadata {
   pageCount: number;
   nodeCount: number;
   previewThumbnail?: string;
+  tags?: string[];
+  healthScore?: number;
 }
 
 export function createDefaultPage(name = 'Page 1'): Page {
@@ -800,3 +838,47 @@ export function createDefaultNode(type: NodeType, x = 100, y = 100, customProps:
       };
   }
 }
+
+export function createInitialDocument(name = 'Untitled Document'): ChigmaDocument {
+  const pageId = `page_${Date.now()}`;
+  return {
+    id: `doc_${Date.now()}`,
+    name,
+    version: 2,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    pages: [
+      {
+        id: pageId,
+        name: 'Page 1',
+        children: [],
+        background: '#FFFFFF'
+      }
+    ],
+    components: [],
+    variableCollections: [
+      {
+        id: 'col_colors',
+        name: 'Colors',
+        modes: [
+          { id: 'light', name: 'Light' },
+          { id: 'dark', name: 'Dark' }
+        ],
+        defaultModeId: 'light',
+        variables: [
+          {
+            id: 'var_primary',
+            name: 'primary',
+            type: 'color',
+            value: '#000000',
+            valuesByMode: { light: '#000000', dark: '#FFFFFF' }
+          }
+        ]
+      }
+    ],
+    styles: [],
+    decisionLog: [],
+    snapshots: []
+  };
+}
+

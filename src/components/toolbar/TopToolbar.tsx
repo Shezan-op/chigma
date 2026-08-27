@@ -22,8 +22,12 @@ import {
   Play,
   Smile,
   Palette,
-  ShieldCheck,
-  Smartphone
+  Sparkles,
+  Server,
+  FileText,
+  History,
+  ShieldAlert,
+  Cpu
 } from 'lucide-react';
 
 interface TopToolbarProps {
@@ -52,13 +56,20 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
     showRulers,
     setShowRulers,
     selectedIds,
+    editorMode,
+    setEditorMode,
+    isAiPanelOpen,
+    setAiPanelOpen,
     setCommandPaletteOpen,
+    setQuickInsertOpen,
     setCodeExportModalOpen,
     setPrototypeMode,
     setIconPickerOpen,
     setDesignSystemModalOpen,
-    setAccessibilityModalOpen,
-    setResponsivePreviewOpen
+    setLinterModalOpen,
+    setDecisionLogModalOpen,
+    setSnapshotsModalOpen,
+    setMcpModalOpen
   } = useEditorStore();
 
   const { setExportModalOpen, setImportModalOpen, setShortcutsModalOpen } = useProjectStore();
@@ -118,9 +129,48 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
             {doc.name}
           </div>
         )}
+
+        {/* Mode Switcher Pill */}
+        <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-full border border-zinc-200 dark:border-zinc-700 ml-2">
+          <button
+            onClick={() => setEditorMode('design')}
+            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition ${
+              editorMode === 'design'
+                ? 'bg-black text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+            }`}
+          >
+            Design
+          </button>
+          <button
+            onClick={() => setEditorMode('dev')}
+            className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold transition ${
+              editorMode === 'dev'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+            }`}
+          >
+            <Cpu size={12} />
+            <span>Dev Mode</span>
+          </button>
+          <button
+            onClick={() => {
+              setEditorMode('prototype');
+              setPrototypeMode(true);
+            }}
+            className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold transition ${
+              editorMode === 'prototype'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+            }`}
+          >
+            <Play size={11} fill="currentColor" />
+            <span>Prototype</span>
+          </button>
+        </div>
       </div>
 
-      {/* Center: Command Palette, Undo/Redo, Design Tools & Alignment */}
+      {/* Center: Command Palette, Quick Insert, AI Assistant & Alignment */}
       <div className="toolbar-section center">
         {/* Quick Actions Search Pill */}
         <button
@@ -129,11 +179,35 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
           title="Quick Actions (Ctrl+K)"
         >
           <Search size={13} />
-          <span>Quick Actions</span>
+          <span>Actions</span>
           <kbd>Ctrl+K</kbd>
         </button>
 
-        {/* Quick Tool Launchers: Icons, Tokens, A11y, Responsive */}
+        {/* Quick Insert (/) */}
+        <button
+          onClick={() => setQuickInsertOpen(true)}
+          className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+          title="Quick Insert Component (/)"
+        >
+          <span>Insert</span>
+          <kbd className="text-[10px] font-mono bg-white dark:bg-zinc-900 px-1 rounded border border-zinc-200 dark:border-zinc-700">/</kbd>
+        </button>
+
+        {/* AI Co-Designer Button */}
+        <button
+          onClick={() => setAiPanelOpen(!isAiPanelOpen)}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition shadow-sm ${
+            isAiPanelOpen
+              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-indigo-500/25'
+              : 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100'
+          }`}
+          title="Chigma AI Assistant"
+        >
+          <Sparkles size={13} className="animate-pulse" />
+          <span>AI Co-Designer</span>
+        </button>
+
+        {/* Quick Tool Launchers: Icons, Tokens, Linter, Decision Log, Snapshots, MCP */}
         <div className="toolbar-btn-group">
           <button
             className="btn-icon"
@@ -151,17 +225,31 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
           </button>
           <button
             className="btn-icon"
-            onClick={() => setAccessibilityModalOpen(true)}
-            title="Accessibility & Contrast Inspector"
+            onClick={() => setLinterModalOpen(true)}
+            title="Design Health & Quality Inspector"
           >
-            <ShieldCheck size={15} />
+            <ShieldAlert size={15} />
           </button>
           <button
             className="btn-icon"
-            onClick={() => setResponsivePreviewOpen(true)}
-            title="Responsive Breakpoint Preview"
+            onClick={() => setDecisionLogModalOpen(true)}
+            title="Project Design Decision Log"
           >
-            <Smartphone size={15} />
+            <FileText size={15} />
+          </button>
+          <button
+            className="btn-icon"
+            onClick={() => setSnapshotsModalOpen(true)}
+            title="Version History & Snapshots"
+          >
+            <History size={15} />
+          </button>
+          <button
+            className="btn-icon"
+            onClick={() => setMcpModalOpen(true)}
+            title="Model Context Protocol (MCP) Server"
+          >
+            <Server size={15} />
           </button>
         </div>
 
@@ -187,7 +275,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ onBackToProjects }) => {
           </button>
         </div>
 
-        {/* Alignment & Distribution (Shown when multiple items selected) */}
+        {/* Alignment & Distribution */}
         {hasMultipleSelected && (
           <div className="toolbar-btn-group">
             <button
