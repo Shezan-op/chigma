@@ -119,15 +119,16 @@ npm run build
 
 ## 📚 Architectural & Engineering Documentation
 
-- [ARCHITECTURE.md](file:///c:/Users/techt/chigma/ARCHITECTURE.md): Deep-dive into data models, rendering engine, master components, AI orchestrator, MCP server, and Dexie IndexedDB storage.
-- [docs/architecture/system-architecture.md](file:///c:/Users/techt/chigma/docs/architecture/system-architecture.md): High-level system architecture and data flow diagrams.
-- [docs/ai/architecture.md](file:///c:/Users/techt/chigma/docs/ai/architecture.md): AI Co-Designer provider abstraction and context builder.
-- [docs/mcp/server-protocol.md](file:///c:/Users/techt/chigma/docs/mcp/server-protocol.md): MCP JSON-RPC protocol reference, tools, resources, and prompts.
-- [docs/prototype/interaction-runtime.md](file:///c:/Users/techt/chigma/docs/prototype/interaction-runtime.md): Prototyping runtime and session state machine.
-- [docs/export/multi-framework-codegen.md](file:///c:/Users/techt/chigma/docs/export/multi-framework-codegen.md): Multi-framework code handoff specification.
+- [DEVELOPER_HANDBOOK.md](file:///c:/Users/techt/chigma/docs/DEVELOPER_HANDBOOK.md): Complete guide to Chigma engine architecture, vector renderers, auto-layout, tokens, and storage.
+- [AI_ARCHITECTURE.md](file:///c:/Users/techt/chigma/docs/AI_ARCHITECTURE.md): Multi-provider AI engine (offline heuristic, local Ollama, OpenAI) and direct vision screenshot loop.
+- [MCP_ARCHITECTURE.md](file:///c:/Users/techt/chigma/docs/MCP_ARCHITECTURE.md): External MCP bridge daemon (`scripts/chigma-mcp-bridge.cjs`) for Claude Code, Cursor, and Codex.
+- [RELEASE_CHECKLIST.md](file:///c:/Users/techt/chigma/docs/RELEASE_CHECKLIST.md): Production readiness verification matrix.
+- [CHIGMA_FINAL_WORK_DONE.md](file:///c:/Users/techt/chigma/CHIGMA_FINAL_WORK_DONE.md): Comprehensive gap-closure, audit and subsystem verification report.
+- [ARCHITECTURE.md](file:///c:/Users/techt/chigma/ARCHITECTURE.md): Deep-dive into data models, rendering engine, master components, and IndexedDB persistence.
 - [CHANGELOG.md](file:///c:/Users/techt/chigma/CHANGELOG.md): Complete release and feature history.
+- [CONTRIBUTING.md](file:///c:/Users/techt/chigma/CONTRIBUTING.md): Guidelines for open-source contributors.
 
 ---
 
 ## 📄 License
-MIT License. Built for local-first visual design, wireframing, and interactive prototyping.
+MIT License. See [LICENSE](file:///c:/Users/techt/chigma/LICENSE) for details. Built for local-first visual design, wireframing, and interactive prototyping.

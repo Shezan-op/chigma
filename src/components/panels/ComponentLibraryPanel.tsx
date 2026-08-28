@@ -43,7 +43,7 @@ export const ComponentLibraryPanel: React.FC = () => {
   const { document, getNodeById, addNode, addNodes } = useDocumentStore();
   const { viewport, setSelectedIds } = useEditorStore();
 
-  const projectComponents = (document.componentMasters || []).filter((c) =>
+  const projectComponents: ComponentMaster[] = ((document as any).componentMasters || []).filter((c: ComponentMaster) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 

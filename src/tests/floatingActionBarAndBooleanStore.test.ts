@@ -4,7 +4,7 @@ import { createDefaultNode } from '../models/document';
 
 describe('Document Store Boolean CSG Integration', () => {
   beforeEach(() => {
-    const { addNode, getActivePage } = useDocumentStore.getState();
+    const { getActivePage } = useDocumentStore.getState();
     const page = getActivePage();
     if (page) {
       page.children = [];

@@ -9,7 +9,7 @@ import {
   AlignJustify,
   Combine,
   Scissors,
-  Intersect,
+  Layers,
   ArrowUp,
   ArrowDown,
   Lock,
@@ -140,7 +140,7 @@ export const FloatingActionBar: React.FC = () => {
             onClick={() => useDocumentStore.getState().performBooleanOperation('intersect', selectedIds)}
             title="Boolean Intersect (Overlap Only)"
           >
-            <Intersect size={14} />
+            <Layers size={14} />
           </button>
         </>
       )}
