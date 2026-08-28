@@ -99,7 +99,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
     }
   };
 
-  const handleCreateFromTemplate = async (templateType: 'saas' | 'mobile' | 'dashboard' | 'blank') => {
+  const handleCreateFromTemplate = async (templateType: 'saas' | 'mobile' | 'dashboard' | 'leady' | 'blank') => {
     if (templateType === 'blank') {
       return handleCreateNew();
     }
@@ -108,11 +108,194 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
       let docName = 'SaaS Landing Page';
       if (templateType === 'mobile') docName = 'Mobile App Wireframe';
       if (templateType === 'dashboard') docName = 'Analytics Dashboard';
+      if (templateType === 'leady') docName = 'Leady — Custom SaaS Agency';
 
       const newDoc = await createProject(docName);
       const page = createDefaultPage('Page 1');
 
-      if (templateType === 'saas') {
+      if (templateType === 'leady') {
+        newDoc.activeModeId = 'dark';
+        newDoc.variableCollections = [
+          {
+            id: 'col_leady',
+            name: 'Leady Dark Tokens',
+            defaultModeId: 'dark',
+            modes: [{ id: 'dark', name: 'Dark Theme' }],
+            variables: [
+              { id: 'v_bg', name: 'surface.background', type: 'color', value: '#09090B' },
+              { id: 'v_card', name: 'surface.card', type: 'color', value: '#18181B' },
+              { id: 'v_primary', name: 'color.primary', type: 'color', value: '#6366F1' },
+              { id: 'v_text', name: 'text.primary', type: 'color', value: '#FAFAFA' }
+            ]
+          }
+        ];
+
+        page.children = [
+          createDefaultNode('frame', 0, 0, {
+            width: 1440,
+            height: 2000,
+            name: 'Leady Desktop Canvas',
+            fill: '#09090B'
+          }),
+          createDefaultNode('navbar', 80, 24, {
+            width: 1280,
+            height: 64,
+            name: 'Top Navigation Bar',
+            brand: '⚡ LEADY AGENCY',
+            links: ['Services', 'Case Studies', 'Process', 'Pricing', 'About'],
+            fill: '#18181B',
+            stroke: '#27272A',
+            cornerRadius: 16
+          }),
+          createDefaultNode('badge', 520, 130, {
+            width: 400,
+            height: 36,
+            name: 'Status Pill Badge',
+            label: '🚀 NOW ACCEPTING 2 CLIENTS FOR Q3 — BUILD IN 6 WEEKS',
+            fill: '#1E1B4B',
+            stroke: '#4338CA',
+            textColor: '#A5B4FC',
+            cornerRadius: 999
+          }),
+          createDefaultNode('text', 220, 190, {
+            width: 1000,
+            height: 110,
+            name: 'Hero Main Headline',
+            text: 'We Engineer Custom SaaS Products That Scale To Millions in ARR',
+            fontSize: 40,
+            fontWeight: 700,
+            fill: '#FAFAFA',
+            textAlign: 'center'
+          }),
+          createDefaultNode('text', 320, 320, {
+            width: 800,
+            height: 60,
+            name: 'Hero Subtitle',
+            text: 'From concept to production launch in 6 weeks. High-performance Next.js architectures, AI agent workflows, and world-class design systems.',
+            fontSize: 17,
+            fill: '#A1A1AA',
+            textAlign: 'center'
+          }),
+          createDefaultNode('button', 480, 410, {
+            width: 220,
+            height: 52,
+            name: 'Primary CTA Button',
+            label: 'Book 30-Min Strategy Call →',
+            fill: '#6366F1',
+            textColor: '#FFFFFF',
+            cornerRadius: 12
+          }),
+          createDefaultNode('button', 720, 410, {
+            width: 220,
+            height: 52,
+            name: 'Secondary CTA Button',
+            label: 'Explore Our Work ↗',
+            fill: '#27272A',
+            stroke: '#3F3F46',
+            textColor: '#FAFAFA',
+            cornerRadius: 12
+          }),
+          createDefaultNode('card', 160, 510, {
+            width: 340,
+            height: 110,
+            name: 'Metric Card 1',
+            title: '18+ Custom SaaS Shipped',
+            content: 'Across FinTech, AI, Logistics, and Developer Tools.',
+            fill: '#18181B',
+            stroke: '#27272A',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 550, 510, {
+            width: 340,
+            height: 110,
+            name: 'Metric Card 2',
+            title: '$34.2M Total Client ARR',
+            content: 'Built on rock-solid serverless & PostgreSQL systems.',
+            fill: '#18181B',
+            stroke: '#27272A',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 940, 510, {
+            width: 340,
+            height: 110,
+            name: 'Metric Card 3',
+            title: '6 Weeks Avg Delivery',
+            content: 'Zero bloat. Rapid sprint execution to live production.',
+            fill: '#18181B',
+            stroke: '#27272A',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 160, 660, {
+            width: 340,
+            height: 300,
+            name: 'Service: Full-Stack Web',
+            title: '01. Full-Stack Web Architecture',
+            content: 'Next.js 15, TypeScript, Tailwind CSS, high-concurrency PostgreSQL schemas, and real-time WebSockets.',
+            fill: '#18181B',
+            stroke: '#3F3F46',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 550, 660, {
+            width: 340,
+            height: 300,
+            name: 'Service: AI Agents & MCP',
+            title: '02. AI-Native & MCP Workflows',
+            content: 'Autonomous coding agents, tool-calling pipelines, pgvector semantic search, and local Ollama integrations.',
+            fill: '#1E1B4B',
+            stroke: '#6366F1',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 940, 660, {
+            width: 340,
+            height: 300,
+            name: 'Service: UI/UX & Design Systems',
+            title: '03. Product Design & Prototyping',
+            content: 'Polished vector interfaces, interactive state prototypes, WCAG accessibility, and design tokens.',
+            fill: '#18181B',
+            stroke: '#3F3F46',
+            cornerRadius: 16
+          }),
+          createDefaultNode('line-chart', 160, 1000, {
+            width: 1120,
+            height: 340,
+            name: 'Client MRR Growth Velocity',
+            title: 'Client Portfolio ARR Growth & Scale Velocity',
+            fill: '#18181B',
+            stroke: '#27272A',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 160, 1380, {
+            width: 340,
+            height: 340,
+            name: 'Plan: MVP Launch',
+            title: 'MVP Sprint ($12,000)',
+            content: 'Complete production SaaS MVP in 4 weeks. Next.js 15, Auth, Stripe, PostgreSQL, and basic AI features.',
+            fill: '#18181B',
+            stroke: '#27272A',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 550, 1380, {
+            width: 340,
+            height: 340,
+            name: 'Plan: Scale & AI',
+            title: 'Scale & AI-Native ($24,000)',
+            content: 'Full-featured enterprise platform in 6 weeks. Autonomous AI agent workflows, MCP tools, and dedicated design system.',
+            fill: '#1E1B4B',
+            stroke: '#6366F1',
+            cornerRadius: 16
+          }),
+          createDefaultNode('card', 940, 1380, {
+            width: 340,
+            height: 340,
+            name: 'Plan: Dedicated Squad',
+            title: 'Dedicated Squad ($36,000)',
+            content: 'Senior engineering & design squad dedicated full-time to your roadmap with SLA guarantees and continuous releases.',
+            fill: '#18181B',
+            stroke: '#27272A',
+            cornerRadius: 16
+          })
+        ];
+      } else if (templateType === 'saas') {
         page.children = [
           createDefaultNode('navbar', 100, 40, { width: 1000, height: 64, brandName: 'Acme SaaS' }),
           createDefaultNode('badge', 500, 140, { width: 140, height: 28, label: '✨ Introducing v2.0', variant: 'info' }),
@@ -511,7 +694,32 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
             </div>
 
             <div className="pm-templates-grid">
-              {/* 1. Blank Canvas */}
+              {/* 1. Leady Dark Agency (MCP Generated) */}
+              <div
+                className="pm-template-card"
+                onClick={() => handleCreateFromTemplate('leady')}
+                style={{ borderColor: 'rgba(99, 102, 241, 0.4)', background: 'rgba(99, 102, 241, 0.04)' }}
+              >
+                <div className="pm-tmpl-preview saas-preview" style={{ background: '#09090B' }}>
+                  <div className="pm-tmpl-mockup">
+                    <div className="pm-mockup-bar" style={{ background: '#6366F1' }} />
+                    <div className="pm-mockup-hero" style={{ background: '#1E1B4B' }} />
+                    <div className="pm-mockup-row">
+                      <div className="pm-mockup-box" style={{ background: '#18181B', border: '1px solid #3F3F46' }} />
+                      <div className="pm-mockup-box" style={{ background: '#18181B', border: '1px solid #3F3F46' }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="pm-tmpl-meta">
+                  <div className="pm-tmpl-title" style={{ color: '#818CF8' }}>⚡ Leady Agency (Dark)</div>
+                  <div className="pm-tmpl-desc">Full MCP SaaS agency page</div>
+                </div>
+                <div className="pm-tmpl-arrow">
+                  <ChevronRight size={16} />
+                </div>
+              </div>
+
+              {/* 2. Blank Canvas */}
               <div
                 className="pm-template-card"
                 onClick={() => handleCreateFromTemplate('blank')}
