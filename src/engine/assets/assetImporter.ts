@@ -1,9 +1,118 @@
 import { createDefaultNode } from '../../models/document';
 import type { ChigmaNode, ImageNode, SvgNode } from '../../models/node';
 
+export interface AssetMetadata {
+  assetId: string;
+  name: string;
+  type: 'image' | 'svg';
+  mime: string;
+  width: number;
+  height: number;
+  originalWidth: number;
+  originalHeight: number;
+  byteSize: number;
+  optimizedByteSize: number;
+  hash: string;
+  createdAt: number;
+}
+
+// In-memory asset hash registry for deduplication
+const assetHashRegistry = new Map<string, string>(); // hash -> dataUrl/assetId
+
 /**
- * Handles reading an imported or dropped File (Image or SVG)
- * and returns the appropriate ChigmaNode positioned at (x, y).
+ * Computes a fast deterministic string hash from asset content for duplicate detection.
+ */
+export function computeAssetHash(content: string): string {
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return `hash_${Math.abs(hash).toString(16)}`;
+}
+
+/**
+ * Downscales an image client-side via canvas if it exceeds max dimension (default 2048px),
+ * preserving PNG transparency and aspect ratio.
+ */
+export async function optimizeImageDataUrl(
+  dataUrl: string,
+  maxDimension: number = 2048
+): Promise<{ optimizedUrl: string; width: number; height: number; originalWidth: number; originalHeight: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      const origW = img.naturalWidth;
+      const origH = img.naturalHeight;
+
+      if (origW <= maxDimension && origH <= maxDimension) {
+        resolve({
+          optimizedUrl: dataUrl,
+          width: origW,
+          height: origH,
+          originalWidth: origW,
+          originalHeight: origH
+        });
+        return;
+      }
+
+      // Compute scaled dimensions
+      const ratio = Math.min(maxDimension / origW, maxDimension / origH);
+      const targetW = Math.round(origW * ratio);
+      const targetH = Math.round(origH * ratio);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        resolve({
+          optimizedUrl: dataUrl,
+          width: targetW,
+          height: targetH,
+          originalWidth: origW,
+          originalHeight: origH
+        });
+        return;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+
+      const isPng = dataUrl.startsWith('data:image/png');
+      const mime = isPng ? 'image/png' : 'image/jpeg';
+      const optimizedUrl = canvas.toDataURL(mime, isPng ? undefined : 0.88);
+
+      resolve({
+        optimizedUrl,
+        width: targetW,
+        height: targetH,
+        originalWidth: origW,
+        originalHeight: origH
+      });
+    };
+
+    img.onerror = () => {
+      resolve({
+        optimizedUrl: dataUrl,
+        width: 300,
+        height: 200,
+        originalWidth: 300,
+        originalHeight: 200
+      });
+    };
+
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * Handles reading an imported or dropped File (Image or SVG) with deduplication & optimization
  */
 export async function importAssetFile(
   file: File,
@@ -14,14 +123,12 @@ export async function importAssetFile(
   const isImage = file.type.startsWith('image/');
 
   if (!isImage && !isSvg) {
-    console.warn('Unsupported file type:', file.type);
     return null;
   }
 
   if (isSvg) {
     try {
       const svgText = await file.text();
-      // Extract viewBox or dimensions if present
       const parser = new DOMParser();
       const doc = parser.parseFromString(svgText, 'image/svg+xml');
       const svgElem = doc.querySelector('svg');
@@ -60,26 +167,35 @@ export async function importAssetFile(
     }
   }
 
-  // Handle standard raster images (PNG, JPG, WEBP, GIF)
+  // Handle raster image optimization & deduplication
   return new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      if (!dataUrl) {
+    reader.onload = async (e) => {
+      const rawDataUrl = e.target?.result as string;
+      if (!rawDataUrl) {
         resolve(null);
         return;
       }
 
-      // Create an image element to detect natural dimensions
+      const hash = computeAssetHash(rawDataUrl);
+      let finalDataUrl = rawDataUrl;
+
+      if (assetHashRegistry.has(hash)) {
+        finalDataUrl = assetHashRegistry.get(hash)!;
+      } else {
+        const opt = await optimizeImageDataUrl(rawDataUrl, 2048);
+        finalDataUrl = opt.optimizedUrl;
+        assetHashRegistry.set(hash, finalDataUrl);
+      }
+
       const img = new Image();
       img.onload = () => {
         let width = img.naturalWidth || 300;
         let height = img.naturalHeight || 200;
 
-        // Scale down if overly large for canvas
-        const maxDim = 800;
-        if (width > maxDim || height > maxDim) {
-          const ratio = Math.min(maxDim / width, maxDim / height);
+        const maxCanvasDim = 600;
+        if (width > maxCanvasDim || height > maxCanvasDim) {
+          const ratio = Math.min(maxCanvasDim / width, maxCanvasDim / height);
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
         }
@@ -88,17 +204,22 @@ export async function importAssetFile(
           name: file.name.replace(/\.[^/.]+$/, '') || 'Image',
           width,
           height,
-          src: dataUrl,
+          src: finalDataUrl,
           objectFit: 'cover',
-          cornerRadius: 4
+          cornerRadius: 4,
+          crop: {
+            fit: 'cover',
+            x: 0,
+            y: 0,
+            scale: 1
+          }
         }) as ImageNode;
 
         resolve(imageNode);
       };
-      img.onerror = () => {
-        resolve(null);
-      };
-      img.src = dataUrl;
+
+      img.onerror = () => resolve(null);
+      img.src = finalDataUrl;
     };
     reader.readAsDataURL(file);
   });

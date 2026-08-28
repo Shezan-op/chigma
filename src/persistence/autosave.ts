@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDocumentStore } from '../store/useDocumentStore';
 import { useProjectStore } from '../store/useProjectStore';
+import { saveCrashRecoverySnapshot } from './storageManager';
 
 export function useAutosave(debounceMs = 600) {
   const document = useDocumentStore((s) => s.document);
@@ -18,6 +19,7 @@ export function useAutosave(debounceMs = 600) {
     timerRef.current = window.setTimeout(async () => {
       try {
         await saveCurrentProject(document);
+        saveCrashRecoverySnapshot(document);
         // Clean dirty flag without changing history stack
         useDocumentStore.setState({ isDirty: false });
       } catch (err) {

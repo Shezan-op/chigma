@@ -6,6 +6,7 @@ import { useDocumentStore } from '../store/useDocumentStore';
 import { ImportModal } from '../components/dialogs/ImportModal';
 import { ConfirmModal } from '../components/dialogs/ConfirmModal';
 import { ToastContainer } from '../components/dialogs/ToastContainer';
+import { mcpBridgeClient } from '../mcp/mcpBridgeClient';
 
 export const App: React.FC = () => {
   const { activeProjectId, openProject } = useProjectStore();
@@ -15,6 +16,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     async function init() {
+      mcpBridgeClient.connect();
       if (activeProjectId) {
         const doc = await openProject(activeProjectId);
         if (doc) {
