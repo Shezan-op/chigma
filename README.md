@@ -119,6 +119,7 @@ npm run build
 
 ## 📚 Architectural & Engineering Documentation
 
+- [chigma-course.md](file:///c:/Users/techt/chigma/docs/chigma-course.md): Complete beginner-to-advanced master course on using Chigma like a pro.
 - [DEVELOPER_HANDBOOK.md](file:///c:/Users/techt/chigma/docs/DEVELOPER_HANDBOOK.md): Complete guide to Chigma engine architecture, vector renderers, auto-layout, tokens, and storage.
 - [AI_ARCHITECTURE.md](file:///c:/Users/techt/chigma/docs/AI_ARCHITECTURE.md): Multi-provider AI engine (offline heuristic, local Ollama, OpenAI) and direct vision screenshot loop.
 - [MCP_ARCHITECTURE.md](file:///c:/Users/techt/chigma/docs/MCP_ARCHITECTURE.md): External MCP bridge daemon (`scripts/chigma-mcp-bridge.cjs`) for Claude Code, Cursor, and Codex.
