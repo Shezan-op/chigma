@@ -123,7 +123,7 @@ npm run build
 - [AI_ARCHITECTURE.md](file:///c:/Users/techt/chigma/docs/AI_ARCHITECTURE.md): Multi-provider AI engine (offline heuristic, local Ollama, OpenAI) and direct vision screenshot loop.
 - [MCP_ARCHITECTURE.md](file:///c:/Users/techt/chigma/docs/MCP_ARCHITECTURE.md): External MCP bridge daemon (`scripts/chigma-mcp-bridge.cjs`) for Claude Code, Cursor, and Codex.
 - [RELEASE_CHECKLIST.md](file:///c:/Users/techt/chigma/docs/RELEASE_CHECKLIST.md): Production readiness verification matrix.
-- [CHIGMA_FINAL_WORK_DONE.md](file:///c:/Users/techt/chigma/CHIGMA_FINAL_WORK_DONE.md): Comprehensive gap-closure, audit and subsystem verification report.
+- [FINAL_WORK_DONE.md](file:///c:/Users/techt/chigma/docs/audits/FINAL_WORK_DONE.md): Comprehensive gap-closure, audit and subsystem verification report.
 - [ARCHITECTURE.md](file:///c:/Users/techt/chigma/ARCHITECTURE.md): Deep-dive into data models, rendering engine, master components, and IndexedDB persistence.
 - [CHANGELOG.md](file:///c:/Users/techt/chigma/CHANGELOG.md): Complete release and feature history.
 - [CONTRIBUTING.md](file:///c:/Users/techt/chigma/CONTRIBUTING.md): Guidelines for open-source contributors.
