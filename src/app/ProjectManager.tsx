@@ -28,6 +28,8 @@ import {
   Layout
 } from 'lucide-react';
 
+import { getCrashRecoverySnapshot, clearCrashRecoverySnapshot } from '../persistence/storageManager';
+
 interface ProjectManagerProps {
   onOpenEditor: () => void;
 }
@@ -56,9 +58,14 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
   const [sortBy, setSortBy] = useState<'updated' | 'name'>('updated');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [storageUsage, setStorageUsage] = useState({ used: '2.4 MB', total: '1 GB', percent: 0.24 });
+  const [recoverySnapshot, setRecoverySnapshot] = useState<{ timestamp: number; document: ChigmaDocument } | null>(null);
 
   useEffect(() => {
     loadProjectsList();
+    const snap = getCrashRecoverySnapshot();
+    if (snap && snap.document) {
+      setRecoverySnapshot(snap);
+    }
     // Storage estimation
     if (navigator.storage && navigator.storage.estimate) {
       navigator.storage.estimate().then((est) => {
@@ -405,6 +412,45 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onOpenEditor }) 
 
         {/* Scrollable Dashboard Area */}
         <div className="pm-scroll-area">
+          {/* Unsaved Session Recovery Banner */}
+          {recoverySnapshot && (
+            <div className="flex items-center justify-between p-4 mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold">Unsaved Session Auto-Snapshot Found</h4>
+                  <p className="text-xs opacity-80">
+                    Project "{recoverySnapshot.document.name || 'Untitled'}" has an auto-recovered snapshot from {new Date(recoverySnapshot.timestamp).toLocaleTimeString()}.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors shadow-sm"
+                  onClick={() => {
+                    setDocument(recoverySnapshot.document);
+                    clearCrashRecoverySnapshot();
+                    setRecoverySnapshot(null);
+                    onOpenEditor();
+                  }}
+                >
+                  Restore Project
+                </button>
+                <button
+                  className="px-2.5 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+                  onClick={() => {
+                    clearCrashRecoverySnapshot();
+                    setRecoverySnapshot(null);
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Welcome Hero Banner */}
           <div className="pm-hero-banner">
             <div className="pm-hero-left">

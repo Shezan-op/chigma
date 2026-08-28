@@ -7,6 +7,9 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
+  Combine,
+  Scissors,
+  Intersect,
   ArrowUp,
   ArrowDown,
   Lock,
@@ -106,13 +109,40 @@ export const FloatingActionBar: React.FC = () => {
         <AlignRight size={14} />
       </button>
       {isMultiple && (
-        <button
-          className="fab-btn"
-          onClick={() => distributeNodes('horizontal', selectedIds)}
-          title="Distribute Horizontally"
-        >
-          <AlignJustify size={14} />
-        </button>
+        <>
+          <button
+            className="fab-btn"
+            onClick={() => distributeNodes('horizontal', selectedIds)}
+            title="Distribute Horizontally"
+          >
+            <AlignJustify size={14} />
+          </button>
+
+          <div className="fab-divider" />
+
+          {/* Boolean CSG Operations */}
+          <button
+            className="fab-btn"
+            onClick={() => useDocumentStore.getState().performBooleanOperation('union', selectedIds)}
+            title="Boolean Union (Combine Shapes)"
+          >
+            <Combine size={14} />
+          </button>
+          <button
+            className="fab-btn"
+            onClick={() => useDocumentStore.getState().performBooleanOperation('subtract', selectedIds)}
+            title="Boolean Subtract (Cut Front Shape)"
+          >
+            <Scissors size={14} />
+          </button>
+          <button
+            className="fab-btn"
+            onClick={() => useDocumentStore.getState().performBooleanOperation('intersect', selectedIds)}
+            title="Boolean Intersect (Overlap Only)"
+          >
+            <Intersect size={14} />
+          </button>
+        </>
       )}
 
       <div className="fab-divider" />

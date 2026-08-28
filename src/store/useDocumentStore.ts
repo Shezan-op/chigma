@@ -12,6 +12,13 @@ import {
 } from '../engine/commands/DocumentCommands';
 import { generateId } from '../utils/id';
 import { getNodesCompositeBounds } from '../engine/geometry/bounds';
+import {
+  type BooleanOperation,
+  rectToPolygon,
+  ellipseToPolygon,
+  performBooleanCsg,
+  polygonToSvgPath
+} from '../engine/geometry/booleanCsg';
 
 export type AlignmentType = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom';
 export type DistributionType = 'horizontal' | 'vertical';
@@ -52,6 +59,7 @@ export interface DocumentState {
   alignNodes: (type: AlignmentType, ids: string[]) => void;
   distributeNodes: (type: DistributionType, ids: string[]) => void;
   stackNodes: (direction: 'horizontal' | 'vertical', gap: number, ids: string[]) => void;
+  performBooleanOperation: (operation: BooleanOperation, ids: string[]) => void;
   setNodeInteraction: (id: string, interaction?: any) => void;
   setNodeAutoLayout: (id: string, autoLayout?: any) => void;
 
@@ -635,6 +643,48 @@ export const useDocumentStore = create<DocumentState>((set, get) => {
       });
 
       get().updateNodes(updates, true, `Stack ${direction} (${gap}px gap)`);
+    },
+
+    performBooleanOperation: (operation, ids) => {
+      if (ids.length < 2) return;
+      const page = get().getActivePage();
+      if (!page) return;
+
+      const nodes = ids.map((id) => get().getNodeById(id)).filter(Boolean) as ChigmaNode[];
+      if (nodes.length < 2) return;
+
+      const [nodeA, nodeB] = nodes;
+      const polyA = nodeA.type === 'ellipse'
+        ? ellipseToPolygon(nodeA.x + nodeA.width / 2, nodeA.y + nodeA.height / 2, nodeA.width / 2, nodeA.height / 2)
+        : rectToPolygon(nodeA.x, nodeA.y, nodeA.width, nodeA.height);
+
+      const polyB = nodeB.type === 'ellipse'
+        ? ellipseToPolygon(nodeB.x + nodeB.width / 2, nodeB.y + nodeB.height / 2, nodeB.width / 2, nodeB.height / 2)
+        : rectToPolygon(nodeB.x, nodeB.y, nodeB.width, nodeB.height);
+
+      const contours = performBooleanCsg(polyA, polyB, operation);
+      if (contours.length === 0) return;
+
+      const pathD = polygonToSvgPath(contours[0]);
+      const minX = Math.min(...contours[0].map((p) => p.x));
+      const minY = Math.min(...contours[0].map((p) => p.y));
+      const maxX = Math.max(...contours[0].map((p) => p.x));
+      const maxY = Math.max(...contours[0].map((p) => p.y));
+
+      const resultNode: ChigmaNode = {
+        ...nodeA,
+        id: generateId('bool'),
+        name: `${operation.charAt(0).toUpperCase() + operation.slice(1)} Shape`,
+        type: 'svg',
+        x: minX,
+        y: minY,
+        width: Math.max(20, maxX - minX),
+        height: Math.max(20, maxY - minY),
+        svgContent: `<svg viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" fill="${nodeA.fill || '#4F46E5'}"><path d="${pathD}" fill="${nodeA.fill || '#4F46E5'}" /></svg>`
+      };
+
+      get().deleteNodes(ids);
+      get().addNode(resultNode);
     },
 
     setNodeInteraction: (id, interaction) => {

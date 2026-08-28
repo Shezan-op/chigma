@@ -3,7 +3,9 @@ import { useDocumentStore } from '../../store/useDocumentStore';
 import { useEditorStore } from '../../store/useEditorStore';
 import { createDefaultNode } from '../../models/document';
 import { screenToWorld } from '../../engine/geometry/matrix';
+import { createInstanceFromMaster } from '../../engine/components/componentEngine';
 import type { NodeType, ChigmaNode } from '../../models/node';
+import type { ComponentMaster } from '../../models/document';
 import {
   Search,
   Square,
@@ -38,8 +40,25 @@ interface LibraryItem {
 export const ComponentLibraryPanel: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const { addNode, addNodes } = useDocumentStore();
+  const { document, getNodeById, addNode, addNodes } = useDocumentStore();
   const { viewport, setSelectedIds } = useEditorStore();
+
+  const projectComponents = (document.componentMasters || []).filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleInsertMasterInstance = (master: ComponentMaster) => {
+    const mainNode = getNodeById(master.mainNodeId);
+    if (!mainNode) return;
+    const centerScreen = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2
+    };
+    const worldPoint = screenToWorld(centerScreen, viewport);
+    const instance = createInstanceFromMaster(master, mainNode, worldPoint.x - 50, worldPoint.y - 30);
+    addNode(instance);
+    setSelectedIds([instance.id]);
+  };
 
   const libraryItems: LibraryItem[] = [
     // Pre-built Wireframe Sections (1-Click Insertion)
@@ -192,6 +211,31 @@ export const ComponentLibraryPanel: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* Project Custom Component Masters */}
+      {projectComponents.length > 0 && (
+        <div className="mb-4">
+          <div className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider px-1 mb-2 flex items-center gap-1.5">
+            <span>❖ Project Components</span>
+            <span className="text-[10px] px-1.5 py-0.2 bg-zinc-200 dark:bg-zinc-800 rounded-full font-normal">
+              {projectComponents.length}
+            </span>
+          </div>
+          <div className="library-grid">
+            {projectComponents.map((comp) => (
+              <div
+                key={comp.id}
+                className="library-card border border-purple-500/30 bg-purple-500/5 hover:border-purple-500"
+                onClick={() => handleInsertMasterInstance(comp)}
+                title={`Click to insert instance of ❖ ${comp.name}`}
+              >
+                <div className="library-card-icon text-purple-600 dark:text-purple-400">❖</div>
+                <div className="library-card-name font-medium">{comp.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Grid of 1-Click Insertable Components & Sections */}
       <div className="library-grid">

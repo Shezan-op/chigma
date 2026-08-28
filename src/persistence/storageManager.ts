@@ -2,6 +2,9 @@ import type { ChigmaDocument } from '../models/document';
 
 const RECOVERY_KEY = 'chigma_crash_recovery_snapshot';
 
+// In-memory fallback if localStorage is unavailable or in Node/Vitest
+let memoryStore: Record<string, string> = {};
+
 export interface StorageQuotaInfo {
   usedBytes: number;
   quotaBytes: number;
@@ -13,7 +16,7 @@ export interface StorageQuotaInfo {
  * Queries the browser StorageManager API for IndexedDB storage estimates.
  */
 export async function getStorageQuotaInfo(): Promise<StorageQuotaInfo> {
-  if (navigator.storage && navigator.storage.estimate) {
+  if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
     try {
       const estimate = await navigator.storage.estimate();
       const used = estimate.usage || 0;
@@ -42,14 +45,19 @@ export async function getStorageQuotaInfo(): Promise<StorageQuotaInfo> {
  * Saves a crash recovery snapshot to localStorage before critical actions or on autosave.
  */
 export function saveCrashRecoverySnapshot(document: ChigmaDocument): void {
-  try {
-    const payload = {
-      timestamp: Date.now(),
-      document
-    };
-    localStorage.setItem(RECOVERY_KEY, JSON.stringify(payload));
-  } catch (e) {
-    // ignore quota error for fallback snapshot
+  const payload = {
+    timestamp: Date.now(),
+    document
+  };
+  const str = JSON.stringify(payload);
+  memoryStore[RECOVERY_KEY] = str;
+
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(RECOVERY_KEY, str);
+    } catch (e) {
+      // ignore quota error
+    }
   }
 }
 
@@ -58,7 +66,13 @@ export function saveCrashRecoverySnapshot(document: ChigmaDocument): void {
  */
 export function getCrashRecoverySnapshot(): { timestamp: number; document: ChigmaDocument } | null {
   try {
-    const raw = localStorage.getItem(RECOVERY_KEY);
+    let raw: string | null = null;
+    if (typeof localStorage !== 'undefined') {
+      raw = localStorage.getItem(RECOVERY_KEY);
+    }
+    if (!raw) {
+      raw = memoryStore[RECOVERY_KEY] || null;
+    }
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (e) {
@@ -70,9 +84,12 @@ export function getCrashRecoverySnapshot(): { timestamp: number; document: Chigm
  * Clears the crash recovery snapshot.
  */
 export function clearCrashRecoverySnapshot(): void {
-  try {
-    localStorage.removeItem(RECOVERY_KEY);
-  } catch (e) {
-    // ignore
+  delete memoryStore[RECOVERY_KEY];
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.removeItem(RECOVERY_KEY);
+    } catch (e) {
+      // ignore
+    }
   }
 }
